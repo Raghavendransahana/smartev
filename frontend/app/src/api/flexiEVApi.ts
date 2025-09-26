@@ -1,4 +1,4 @@
-const BASE_URL = 'https://api.flexievchain.com'; // Replace with actual API URL
+const BASE_URL = 'http://localhost:4000'; // Replace with actual API URL
 
 // Types for API responses
 export interface Vehicle {

@@ -1,602 +1,670 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
   ActivityIndicator,
+  Alert,
   Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
-import { useTheme } from '../contexts/ThemeContext';
-import { flexiEVAPI, Vehicle, Analytics } from '../api/flexiEVApi';
+import { LineChart, PieChart } from 'react-native-chart-kit';
+import ScreenContainer from '@/components/layout/ScreenContainer';
+import GlassCard from '@/components/layout/GlassCard';
+import { dashboardPalette } from '@/theme/dashboardPalette';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Analytics, Vehicle, flexiEVAPI } from '@/api/flexiEVApi';
 
 const { width } = Dimensions.get('window');
+const chartWidth = Math.max(Math.min(width - 64, 520), 280);
+
+const gradientPresets = {
+  base: ['rgba(15,23,42,0.95)', 'rgba(2,6,23,0.88)'] as [string, string],
+  highlight: ['rgba(37,99,235,0.38)', 'rgba(56,189,248,0.18)'] as [string, string],
+  accent: ['rgba(34,197,94,0.32)', 'rgba(6,95,70,0.12)'] as [string, string],
+  cool: ['rgba(56,189,248,0.32)', 'rgba(8,47,73,0.16)'] as [string, string],
+};
+
+const pieChartConfig = {
+  backgroundColor: 'transparent',
+  backgroundGradientFrom: 'rgba(15,23,42,0.95)',
+  backgroundGradientTo: 'rgba(15,23,42,0.95)',
+  color: (opacity = 1) => `rgba(56, 189, 248, ${opacity})`,
+  labelColor: () => dashboardPalette.textSecondary,
+};
+
+const lineChartConfig = {
+  backgroundGradientFrom: 'rgba(15,23,42,0.9)',
+  backgroundGradientTo: 'rgba(15,23,42,0.75)',
+  backgroundColor: 'transparent',
+  decimalPlaces: 1,
+  color: (opacity = 1) => `rgba(56, 189, 248, ${opacity})`,
+  labelColor: () => dashboardPalette.textSecondary,
+  propsForDots: {
+    r: '5',
+    strokeWidth: '2',
+    stroke: '#38bdf8',
+  },
+  propsForBackgroundLines: {
+    stroke: 'rgba(59,130,246,0.15)',
+  },
+  fillShadowGradient: '#38bdf8',
+  fillShadowGradientOpacity: 0.22,
+};
+
+const badgeSurfaceColor = 'rgba(56,189,248,0.16)';
+
+type AnalyticsTabId = 'battery' | 'charging';
+
+interface AnalyticsTab {
+  id: AnalyticsTabId;
+  label: string;
+  icon: string;
+}
+
+const tabs: AnalyticsTab[] = [
+  { id: 'battery', label: 'Battery Analytics', icon: '🔋' },
+  { id: 'charging', label: 'Charging Analytics', icon: '⚡' },
+];
+
+const getBatteryHealthColor = (value: number) => {
+  if (value >= 80) return '#34d399';
+  if (value >= 60) return '#38bdf8';
+  if (value >= 40) return '#facc15';
+  return '#f87171';
+};
+
+const getWarrantyStatusColor = (status: string) => {
+  switch (status?.toLowerCase()) {
+    case 'active':
+      return '#34d399';
+    case 'expiring soon':
+      return '#facc15';
+    case 'expired':
+      return '#f87171';
+    default:
+      return dashboardPalette.textSecondary;
+  }
+};
+
+const formatDate = (date?: string) => {
+  if (!date) {
+    return null;
+  }
+
+  try {
+    return new Date(date).toLocaleDateString();
+  } catch (error) {
+    return date;
+  }
+};
 
 const AnalyticsScreen: React.FC = () => {
   const { theme } = useTheme();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [selectedVehicle, setSelectedVehicle] = useState<string>('');
+  const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [batteryAnalytics, setBatteryAnalytics] = useState<Analytics | null>(null);
   const [chargingAnalytics, setChargingAnalytics] = useState<Analytics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'battery' | 'charging'>('battery');
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<AnalyticsTabId>('battery');
 
-  useEffect(() => {
-    loadVehicles();
-  }, []);
-
-  useEffect(() => {
-    if (selectedVehicle) {
-      loadAnalytics();
-    }
-  }, [selectedVehicle]);
-
-  const loadVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     try {
       const data = await flexiEVAPI.getVehicles();
       setVehicles(data);
-      if (data.length > 0 && !selectedVehicle) {
-        setSelectedVehicle(data[0].id);
+      if (data.length > 0) {
+        setSelectedVehicle((previous) => previous ?? data[0].id);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load vehicles');
-      console.error(error);
+      console.error('Failed to load vehicles', error);
+      Alert.alert('Unable to load vehicles', 'Please try again later.');
     }
-  };
+  }, []);
 
-  const loadAnalytics = async () => {
+  const fetchAnalytics = useCallback(async (vehicleId: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
       const [battery, charging] = await Promise.all([
-        flexiEVAPI.getBatteryAnalytics(selectedVehicle),
-        flexiEVAPI.getChargingAnalytics(selectedVehicle),
+        flexiEVAPI.getBatteryAnalytics(vehicleId),
+        flexiEVAPI.getChargingAnalytics(vehicleId),
       ]);
+
       setBatteryAnalytics(battery);
       setChargingAnalytics(charging);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load analytics');
-      console.error(error);
+      console.error('Failed to load analytics', error);
+      Alert.alert('Analytics unavailable', 'Unable to load analytics for the selected vehicle.');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleRefresh = async () => {
-    if (!selectedVehicle) return;
-    setRefreshing(true);
-    await loadAnalytics();
-    setRefreshing(false);
-  };
+  useEffect(() => {
+    fetchVehicles();
+  }, [fetchVehicles]);
 
-  const getBatteryHealthColor = (remainingLife: number) => {
-    if (remainingLife > 80) return '#22c55e';
-    if (remainingLife > 60) return '#f59e0b';
-    if (remainingLife > 40) return '#f97316';
-    return '#ef4444';
-  };
-
-  const getWarrantyStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'valid':
-        return '#22c55e';
-      case 'expiring':
-        return '#f59e0b';
-      case 'expired':
-        return '#ef4444';
-      default:
-        return '#666';
+  useEffect(() => {
+    if (selectedVehicle) {
+      fetchAnalytics(selectedVehicle);
     }
-  };
+  }, [selectedVehicle, fetchAnalytics]);
+
+  const handleRefresh = useCallback(() => {
+    if (selectedVehicle) {
+      fetchAnalytics(selectedVehicle);
+    } else {
+      fetchVehicles();
+    }
+  }, [selectedVehicle, fetchAnalytics, fetchVehicles]);
 
   const BatteryAnalyticsTab = () => {
-    if (!batteryAnalytics) return null;
+    if (!batteryAnalytics) {
+      return null;
+    }
 
-    const healthData = {
-      labels: ['Remaining', 'Degraded'],
-      datasets: [{
-        data: [batteryAnalytics.remainingLife, 100 - batteryAnalytics.remainingLife],
-      }],
-    };
+    const distributionData = [
+      {
+        name: 'Healthy',
+        population: batteryAnalytics.remainingLife,
+        color: '#34d399',
+        legendFontColor: theme.colors.text,
+        legendFontSize: 13,
+      },
+      {
+        name: 'Degraded',
+        population: Math.max(0, 100 - batteryAnalytics.remainingLife),
+        color: '#f97316',
+        legendFontColor: theme.colors.text,
+        legendFontSize: 13,
+      },
+    ];
 
-    const healthChartConfig = {
-      backgroundColor: theme.colors.surface,
-      backgroundGradientFrom: theme.colors.surface,
-      backgroundGradientTo: theme.colors.surface,
-      color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
-      strokeWidth: 2,
-    };
+    const predictedFailureCopy = formatDate(batteryAnalytics.predictedFailureDate);
 
     return (
-      <ScrollView style={styles.tabContent}>
-        {/* Battery Health Overview */}
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-            Battery Health Overview
-          </Text>
-          <View style={styles.healthOverview}>
-            <View style={styles.healthItem}>
-              <Text style={[styles.healthLabel, { color: theme.colors.textSecondary }]}>
-                Remaining Life
-              </Text>
-              <Text style={[
-                styles.healthValue,
-                { color: getBatteryHealthColor(batteryAnalytics.remainingLife) }
-              ]}>
+      <View style={styles.sectionStack}>
+        <GlassCard style={styles.cardSpacing} gradientColors={gradientPresets.highlight}>
+          <View style={styles.cardHeaderRow}>
+            <View>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Battery health</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.colors.textSecondary }]}>Real-time lifetime intelligence</Text>
+            </View>
+            <View style={[styles.badge, { backgroundColor: badgeSurfaceColor }]}>
+              <Text style={[styles.badgeText, { color: '#38bdf8' }]}>Live</Text>
+            </View>
+          </View>
+
+          <View style={styles.metricGrid}>
+            <View style={styles.metricCard}>
+              <Text style={[styles.metricLabel, { color: theme.colors.textSecondary }]}>Remaining life</Text>
+              <Text style={[styles.metricValue, { color: getBatteryHealthColor(batteryAnalytics.remainingLife) }]}
+              >
                 {batteryAnalytics.remainingLife}%
               </Text>
+              <Text style={[styles.metricCaption, { color: theme.colors.textSecondary }]}>Projected at current usage</Text>
             </View>
-            <View style={styles.healthItem}>
-              <Text style={[styles.healthLabel, { color: theme.colors.textSecondary }]}>
-                Warranty Status
-              </Text>
-              <Text style={[
-                styles.healthValue,
-                { color: getWarrantyStatusColor(batteryAnalytics.warrantyStatus) }
-              ]}>
+
+            <View style={styles.metricCard}>
+              <Text style={[styles.metricLabel, { color: theme.colors.textSecondary }]}>Warranty status</Text>
+              <Text style={[styles.metricValue, { color: getWarrantyStatusColor(batteryAnalytics.warrantyStatus) }]}>
                 {batteryAnalytics.warrantyStatus}
               </Text>
-            </View>
-          </View>
-          
-          {batteryAnalytics.predictedFailureDate && (
-            <View style={styles.predictionContainer}>
-              <Text style={[styles.predictionLabel, { color: theme.colors.textSecondary }]}>
-                Predicted Failure Date:
-              </Text>
-              <Text style={[styles.predictionDate, { color: theme.colors.text }]}>
-                {new Date(batteryAnalytics.predictedFailureDate).toLocaleDateString()}
+              <Text style={[styles.metricCaption, { color: theme.colors.textSecondary }]}>
+                {predictedFailureCopy ? `Predicted failure ${predictedFailureCopy}` : 'No failure detected'}
               </Text>
             </View>
-          )}
-        </View>
-
-        {/* Battery Health Chart */}
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-            Battery Health Distribution
-          </Text>
-          <PieChart
-            data={[
-              {
-                name: 'Healthy',
-                population: batteryAnalytics.remainingLife,
-                color: '#22c55e',
-                legendFontColor: theme.colors.text,
-                legendFontSize: 14,
-              },
-              {
-                name: 'Degraded',
-                population: 100 - batteryAnalytics.remainingLife,
-                color: '#ef4444',
-                legendFontColor: theme.colors.text,
-                legendFontSize: 14,
-              },
-            ]}
-            width={width - 32}
-            height={220}
-            chartConfig={healthChartConfig}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            absolute
-          />
-        </View>
-
-        {/* Recommended Actions */}
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-            Recommended Actions
-          </Text>
-          <View style={styles.actionsList}>
-            {batteryAnalytics.recommendedActions.map((action, index) => (
-              <View key={index} style={styles.actionItem}>
-                <Text style={styles.actionBullet}>•</Text>
-                <Text style={[styles.actionText, { color: theme.colors.text }]}>
-                  {action}
-                </Text>
-              </View>
-            ))}
           </View>
-        </View>
-      </ScrollView>
+        </GlassCard>
+
+        <GlassCard style={styles.cardSpacing}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Health distribution</Text>
+            <Text style={[styles.cardHint, { color: theme.colors.textSecondary }]}>Last 6 months</Text>
+          </View>
+          <View style={styles.chartWrapper}>
+            <PieChart
+              data={distributionData}
+              width={chartWidth}
+              height={220}
+              chartConfig={pieChartConfig}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="28"
+            />
+          </View>
+        </GlassCard>
+
+        {batteryAnalytics.recommendedActions.length > 0 && (
+          <GlassCard style={styles.cardSpacing} gradientColors={gradientPresets.accent}>
+            <View style={styles.cardHeaderRow}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recommended actions</Text>
+              <Text style={[styles.cardHint, { color: theme.colors.textSecondary }]}>AI generated</Text>
+            </View>
+            <View>
+              {batteryAnalytics.recommendedActions.map((action, index) => (
+                <View key={index} style={styles.actionRow}>
+                  <View style={styles.actionBullet} />
+                  <Text style={[styles.actionText, { color: theme.colors.text }]}>{action}</Text>
+                </View>
+              ))}
+            </View>
+          </GlassCard>
+        )}
+      </View>
     );
   };
 
   const ChargingAnalyticsTab = () => {
-    if (!chargingAnalytics) return null;
+    if (!chargingAnalytics) {
+      return null;
+    }
 
     const efficiencyData = {
       labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-      datasets: [{
-        data: [85, 87, 84, 89, 91, chargingAnalytics.chargingEfficiency || 88],
-        color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-        strokeWidth: 2,
-      }],
-    };
-
-    const chartConfig = {
-      backgroundColor: theme.colors.surface,
-      backgroundGradientFrom: theme.colors.surface,
-      backgroundGradientTo: theme.colors.surface,
-      decimalPlaces: 1,
-      color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-      labelColor: (opacity = 1) => theme.colors.text,
-      style: {
-        borderRadius: 16,
-      },
-      propsForDots: {
-        r: '6',
-        strokeWidth: '2',
-      },
+      datasets: [
+        {
+          data: [85, 87, 84, 89, 91, chargingAnalytics.chargingEfficiency ?? 88],
+          color: (opacity = 1) => `rgba(94, 234, 212, ${opacity})`,
+          strokeWidth: 3,
+        },
+      ],
+      legend: ['Efficiency %'],
     };
 
     return (
-      <ScrollView style={styles.tabContent}>
-        {/* Charging Efficiency */}
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-            Charging Efficiency
-          </Text>
-          <View style={styles.efficiencyContainer}>
-            <View style={styles.efficiencyItem}>
-              <Text style={[styles.efficiencyLabel, { color: theme.colors.textSecondary }]}>
-                Current Efficiency
-              </Text>
-              <Text style={[styles.efficiencyValue, { color: theme.colors.primary }]}>
-                {chargingAnalytics.chargingEfficiency}%
-              </Text>
+      <View style={styles.sectionStack}>
+        <GlassCard style={styles.cardSpacing} gradientColors={gradientPresets.cool}>
+          <View style={styles.cardHeaderRow}>
+            <View>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Charging efficiency</Text>
+              <Text style={[styles.sectionSubtitle, { color: theme.colors.textSecondary }]}>Optimisation insights</Text>
+            </View>
+            <TouchableOpacity onPress={handleRefresh} style={[styles.badge, { backgroundColor: badgeSurfaceColor }]}>
+              <Text style={[styles.badgeText, { color: '#38bdf8' }]}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.metricGrid}>
+            <View style={styles.metricCard}>
+              <Text style={[styles.metricLabel, { color: theme.colors.textSecondary }]}>Current efficiency</Text>
+              <Text style={[styles.metricValue, { color: '#22d3ee' }]}>{chargingAnalytics.chargingEfficiency ?? '--'}%</Text>
+              <Text style={[styles.metricCaption, { color: theme.colors.textSecondary }]}>Across connected chargers</Text>
             </View>
           </View>
-          
-          <LineChart
-            data={efficiencyData}
-            width={width - 32}
-            height={220}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chart}
-          />
-        </View>
 
-        {/* Cost Optimization */}
+          <View style={styles.chartWrapper}>
+            <LineChart
+              data={efficiencyData}
+              width={chartWidth}
+              height={220}
+              chartConfig={lineChartConfig}
+              bezier
+              style={styles.chart}
+            />
+          </View>
+        </GlassCard>
+
         {chargingAnalytics.costOptimization && (
-          <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-            <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-              Cost Optimization
-            </Text>
-            <View style={styles.costGrid}>
-              <View style={styles.costItem}>
-                <Text style={[styles.costLabel, { color: theme.colors.textSecondary }]}>
-                  Current Cost
-                </Text>
-                <Text style={[styles.costValue, { color: theme.colors.text }]}>
+          <GlassCard style={styles.cardSpacing}>
+            <View style={styles.cardHeaderRow}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Cost optimisation</Text>
+              <Text style={[styles.cardHint, { color: theme.colors.textSecondary }]}>Monthly projection</Text>
+            </View>
+
+            <View style={styles.metricGrid}>
+              <View style={styles.metricCard}>
+                <Text style={[styles.metricLabel, { color: theme.colors.textSecondary }]}>Current cost</Text>
+                <Text style={[styles.metricValue, { color: theme.colors.text }]}
+                >
                   ${chargingAnalytics.costOptimization.currentCost.toFixed(2)}
                 </Text>
+                <Text style={[styles.metricCaption, { color: theme.colors.textSecondary }]}>Before smart routing</Text>
               </View>
-              <View style={styles.costItem}>
-                <Text style={[styles.costLabel, { color: theme.colors.textSecondary }]}>
-                  Optimized Cost
-                </Text>
-                <Text style={[styles.costValue, { color: theme.colors.primary }]}>
+
+              <View style={styles.metricCard}>
+                <Text style={[styles.metricLabel, { color: theme.colors.textSecondary }]}>Optimised cost</Text>
+                <Text style={[styles.metricValue, { color: '#2dd4bf' }]}
+                >
                   ${chargingAnalytics.costOptimization.optimizedCost.toFixed(2)}
                 </Text>
+                <Text style={[styles.metricCaption, { color: theme.colors.textSecondary }]}>With preferred schedule</Text>
               </View>
-              <View style={styles.costItem}>
-                <Text style={[styles.costLabel, { color: theme.colors.textSecondary }]}>
-                  Potential Savings
-                </Text>
-                <Text style={[styles.costValue, { color: '#22c55e' }]}>
+
+              <View style={styles.metricCard}>
+                <Text style={[styles.metricLabel, { color: theme.colors.textSecondary }]}>Savings potential</Text>
+                <Text style={[styles.metricValue, { color: '#34d399' }]}
+                >
                   ${chargingAnalytics.costOptimization.savings.toFixed(2)}
                 </Text>
+                <Text style={[styles.metricCaption, { color: theme.colors.textSecondary }]}>≈{Math.round((chargingAnalytics.costOptimization.savings / chargingAnalytics.costOptimization.currentCost) * 100)}% reduction</Text>
               </View>
             </View>
-            
-            <View style={styles.savingsBar}>
-              <View style={[
-                styles.savingsProgress,
-                {
-                  backgroundColor: '#22c55e',
-                  width: `${(chargingAnalytics.costOptimization.savings / chargingAnalytics.costOptimization.currentCost) * 100}%`
-                }
-              ]} />
+
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${Math.min(100, Math.round((chargingAnalytics.costOptimization.savings / chargingAnalytics.costOptimization.currentCost) * 100))}%`,
+                  },
+                ]}
+              />
             </View>
-          </View>
+          </GlassCard>
         )}
 
-        {/* Charging Recommendations */}
-        <View style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
-            Charging Recommendations
-          </Text>
-          <View style={styles.actionsList}>
-            {chargingAnalytics.recommendedActions.map((action, index) => (
-              <View key={index} style={styles.actionItem}>
-                <Text style={styles.actionBullet}>•</Text>
-                <Text style={[styles.actionText, { color: theme.colors.text }]}>
-                  {action}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </ScrollView>
+        {chargingAnalytics.recommendedActions.length > 0 && (
+          <GlassCard style={styles.cardSpacing} gradientColors={gradientPresets.accent}>
+            <View style={styles.cardHeaderRow}>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Charging playbook</Text>
+              <Text style={[styles.cardHint, { color: theme.colors.textSecondary }]}>Tailored actions</Text>
+            </View>
+            <View>
+              {chargingAnalytics.recommendedActions.map((action, index) => (
+                <View key={index} style={styles.actionRow}>
+                  <View style={styles.actionBullet} />
+                  <Text style={[styles.actionText, { color: theme.colors.text }]}>{action}</Text>
+                </View>
+              ))}
+            </View>
+          </GlassCard>
+        )}
+      </View>
     );
   };
 
+  if (!vehicles.length && !loading) {
+    return (
+      <ScreenContainer>
+        <View style={styles.emptyState}>
+          <Text style={[styles.screenTitle, { color: theme.colors.text }]}>No vehicles yet</Text>
+          <Text style={[styles.screenSubtitle, { color: theme.colors.textSecondary }]}>Connect a vehicle to unlock analytics.</Text>
+          <TouchableOpacity onPress={fetchVehicles} style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>Refresh</Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
+    );
+  }
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          Analytics & Insights
-        </Text>
-        <TouchableOpacity
-          style={[styles.refreshButton, { backgroundColor: theme.colors.primary }]}
-          onPress={handleRefresh}
-        >
-          <Text style={styles.buttonText}>🔄</Text>
+    <ScreenContainer scrollable>
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={[styles.screenTitle, { color: theme.colors.text }]}>Analytics & Insights</Text>
+          <Text style={[styles.screenSubtitle, { color: theme.colors.textSecondary }]}>Deep intelligence for your EV fleet</Text>
+        </View>
+        <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
+          <Text style={styles.refreshIcon}>🔄</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.vehicleSelector}>
-        <Text style={[styles.selectorLabel, { color: theme.colors.text }]}>Vehicle:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.vehicleList}>
-          {vehicles.map((vehicle) => (
-            <TouchableOpacity
-              key={vehicle.id}
-              style={[
-                styles.vehicleButton,
-                selectedVehicle === vehicle.id && { backgroundColor: theme.colors.primary },
-              ]}
-              onPress={() => setSelectedVehicle(vehicle.id)}
-            >
-              <Text style={[
-                styles.vehicleButtonText,
-                selectedVehicle === vehicle.id ? { color: 'white' } : { color: theme.colors.text }
-              ]}>
-                {vehicle.brand} {vehicle.model}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      <View style={styles.vehiclePicker}>
+        <Text style={[styles.vehiclePickerLabel, { color: theme.colors.textSecondary }]}>Vehicle</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {vehicles.map((vehicle) => {
+            const isSelected = vehicle.id === selectedVehicle;
+            return (
+              <TouchableOpacity
+                key={vehicle.id}
+                onPress={() => setSelectedVehicle(vehicle.id)}
+                style={[
+                  styles.vehicleChip,
+                  isSelected && { backgroundColor: 'rgba(56,189,248,0.22)', borderColor: '#38bdf8' },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.vehicleChipText,
+                    { color: isSelected ? '#38bdf8' : theme.colors.text },
+                  ]}
+                >
+                  {vehicle.brand} {vehicle.model}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
       <View style={styles.tabSelector}>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'battery' && { backgroundColor: theme.colors.primary },
-          ]}
-          onPress={() => setActiveTab('battery')}
-        >
-          <Text style={[
-            styles.tabText,
-            activeTab === 'battery' ? { color: 'white' } : { color: theme.colors.text }
-          ]}>
-            🔋 Battery Analytics
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'charging' && { backgroundColor: theme.colors.primary },
-          ]}
-          onPress={() => setActiveTab('charging')}
-        >
-          <Text style={[
-            styles.tabText,
-            activeTab === 'charging' ? { color: 'white' } : { color: theme.colors.text }
-          ]}>
-            ⚡ Charging Analytics
-          </Text>
-        </TouchableOpacity>
+        {tabs.map((tab) => {
+          const isActive = tab.id === activeTab;
+          return (
+            <TouchableOpacity
+              key={tab.id}
+              style={[
+                styles.tab,
+                isActive && styles.tabActive,
+                isActive && { borderColor: '#38bdf8' },
+              ]}
+              onPress={() => setActiveTab(tab.id)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  { color: isActive ? '#38bdf8' : theme.colors.textSecondary },
+                ]}
+              >
+                {tab.icon} {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {loading ? (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-            Loading analytics...
-          </Text>
+        <View style={styles.loadingState}>
+          <ActivityIndicator size="large" color="#38bdf8" />
+          <Text style={[styles.loadingText, { color: theme.colors.textSecondary }]}>Crunching telemetry…</Text>
         </View>
       ) : (
         <>
-          {activeTab === 'battery' ? <BatteryAnalyticsTab /> : <ChargingAnalyticsTab />}
+          {activeTab === 'battery' && <BatteryAnalyticsTab />}
+          {activeTab === 'charging' && <ChargingAnalyticsTab />}
         </>
       )}
-    </View>
+    </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    marginBottom: 24,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  screenTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  screenSubtitle: {
+    marginTop: 4,
+    fontSize: 14,
+    opacity: 0.85,
   },
   refreshButton: {
-    padding: 8,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  vehicleSelector: {
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  selectorLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  vehicleList: {
-    flexDirection: 'row',
-  },
-  vehicleButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: 'rgba(56,189,248,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(15,23,42,0.65)',
   },
-  vehicleButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
+  refreshIcon: {
+    fontSize: 20,
+  },
+  vehiclePicker: {
+    marginBottom: 24,
+  },
+  vehiclePickerLabel: {
+    fontSize: 13,
+    textTransform: 'uppercase',
+    marginBottom: 12,
+    letterSpacing: 1,
+  },
+  vehicleChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: 'rgba(15,23,42,0.6)',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(148,163,184,0.18)',
+  },
+  vehicleChipText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   tabSelector: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   tab: {
     flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginHorizontal: 4,
-    borderRadius: 8,
-    alignItems: 'center',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: 'rgba(148,163,184,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    backgroundColor: 'rgba(15,23,42,0.6)',
+  },
+  tabActive: {
+    backgroundColor: 'rgba(8,47,73,0.35)',
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
   },
-  tabContent: {
-    flex: 1,
-    paddingHorizontal: 16,
+  loadingState: {
+    paddingVertical: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  card: {
-    padding: 16,
-    marginBottom: 16,
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
+  sectionStack: {
+    marginBottom: 24,
   },
-  healthOverview: {
+  cardSpacing: {
+    marginBottom: 20,
+  },
+  cardHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  sectionSubtitle: {
+    marginTop: 6,
+    fontSize: 13,
+  },
+  cardHint: {
+    fontSize: 12,
+    opacity: 0.8,
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(56,189,248,0.4)',
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  metricGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  metricCard: {
+    flexBasis: '48%',
+    marginRight: '4%',
     marginBottom: 16,
   },
-  healthItem: {
+  metricLabel: {
+    fontSize: 13,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  metricValue: {
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  metricCaption: {
+    marginTop: 6,
+    fontSize: 12,
+    opacity: 0.75,
+  },
+  chartWrapper: {
     alignItems: 'center',
-  },
-  healthLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  healthValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  predictionContainer: {
-    alignItems: 'center',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  predictionLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  predictionDate: {
-    fontSize: 16,
-    fontWeight: '600',
   },
   chart: {
-    marginVertical: 8,
+    marginTop: 12,
     borderRadius: 16,
   },
-  actionsList: {
-    gap: 8,
-  },
-  actionItem: {
+  actionRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    marginBottom: 12,
   },
   actionBullet: {
-    fontSize: 16,
-    marginRight: 8,
-    color: '#666',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#34d399',
+    marginRight: 12,
+    marginTop: 6,
   },
   actionText: {
     flex: 1,
     fontSize: 14,
     lineHeight: 20,
   },
-  efficiencyContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  efficiencyItem: {
-    alignItems: 'center',
-  },
-  efficiencyLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  efficiencyValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  costGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  costItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  costLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  costValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  savingsBar: {
+  progressTrack: {
     height: 6,
-    backgroundColor: '#eee',
-    borderRadius: 3,
+    borderRadius: 999,
+    backgroundColor: 'rgba(148,163,184,0.18)',
     overflow: 'hidden',
+    marginTop: 12,
   },
-  savingsProgress: {
+  progressFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 999,
+    backgroundColor: '#34d399',
   },
-  centerContent: {
+  emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 24,
   },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
+  primaryButton: {
+    marginTop: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#38bdf8',
+  },
+  primaryButtonText: {
+    color: '#0f172a',
+    fontWeight: '700',
   },
 });
 

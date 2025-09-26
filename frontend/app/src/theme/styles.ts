@@ -37,14 +37,16 @@ export const createStyles = (theme: Theme) => ({
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
     marginVertical: theme.spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 12,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
 
   // Button styles

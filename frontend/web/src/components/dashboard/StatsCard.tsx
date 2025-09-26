@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { cn } from '../../lib/utils'
 import { Card } from '../ui/Card'
 
@@ -9,7 +9,7 @@ interface StatsCardProps {
     value: number
     type: 'increase' | 'decrease' | 'neutral'
   }
-  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  icon?: React.ReactNode
   trend?: Array<{ value: number; label?: string }>
   className?: string
 }
@@ -18,7 +18,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   title,
   value,
   change,
-  icon: Icon,
+  icon,
   trend,
   className,
 }) => {
@@ -44,6 +44,11 @@ export const StatsCard: React.FC<StatsCardProps> = ({
     }
   }
 
+  const maxTrendValue = useMemo(() => {
+    if (!trend || trend.length === 0) return 0
+    return trend.reduce((max, point) => Math.max(max, point.value), 0)
+  }, [trend])
+
   return (
     <Card className={cn('p-6', className)}>
       <div className="flex items-start justify-between">
@@ -62,10 +67,10 @@ export const StatsCard: React.FC<StatsCardProps> = ({
           </div>
         </div>
 
-        {Icon && (
+        {icon && (
           <div className="flex-shrink-0">
             <div className="p-3 bg-primary-50 rounded-lg">
-              <Icon className="h-6 w-6 text-primary-600" />
+              {React.isValidElement(icon) ? icon : <span className="text-primary-600 text-xl">{icon}</span>}
             </div>
           </div>
         )}
@@ -76,8 +81,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         <div className="mt-4">
           <div className="flex items-end space-x-1 h-8">
             {trend.map((point, index) => {
-              const maxValue = Math.max(...trend.map(t => t.value))
-              const height = (point.value / maxValue) * 100
+              const height = maxTrendValue > 0 ? (point.value / maxTrendValue) * 100 : 0
               return (
                 <div
                   key={index}

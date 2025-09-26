@@ -1,0 +1,720 @@
+{
+	"info": {
+		"_postman_id": "flexiev-chat-service",
+		"name": "FlexiEV Chat Service API",
+		"description": "API collection for the FlexiEV Chat Service - AI-powered EV assistant for the Indian market using Groq's ultra-fast inference with Llama3-8B model.\n\nThis service provides expert knowledge about Indian EV brands including Tata, Mahindra, MG, Hyundai, Kia, BYD, and others.\n\nBase URL: http://localhost:4500",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "flexiev-team"
+	},
+	"item": [
+		{
+			"name": "Service Information",
+			"item": [
+				{
+					"name": "Get Service Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"status"
+							]
+						},
+						"description": "Get general service information, version, and available endpoints."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/status",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"status"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"service\": \"FlexiEV Chat Service\",\n    \"status\": \"running\",\n    \"version\": \"1.0.0\",\n    \"timestamp\": \"2025-09-27T10:30:00.000Z\",\n    \"description\": \"AI-powered EV assistant for Indian market\",\n    \"endpoints\": {\n        \"chat\": \"POST /api/chat - Ask EV-related questions\",\n        \"health\": \"GET /api/health - Service health check\",\n        \"info\": \"GET /api/info - Service information\"\n    },\n    \"supportedBrands\": [\"Tata\", \"Mahindra\", \"MG\", \"Hyundai\", \"Kia\", \"BYD\"]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Frontend",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Access the HTML frontend interface for the chat service."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for getting general service information and accessing the frontend."
+		},
+		{
+			"name": "Health & Diagnostics",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						},
+						"description": "Check the health status of the service including Groq API connectivity."
+					},
+					"response": [
+						{
+							"name": "Healthy Service",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/health",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"health"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"healthy\",\n    \"service\": \"EV Assistant API\",\n    \"timestamp\": \"2025-09-27T10:30:00.000Z\",\n    \"model\": \"llama3-8b-8192\",\n    \"provider\": \"Groq\"\n}"
+						},
+						{
+							"name": "Unhealthy Service - No API Key",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/health",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"health"
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"unhealthy\",\n    \"service\": \"EV Assistant API\",\n    \"error\": \"Groq API key not configured\",\n    \"timestamp\": \"2025-09-27T10:30:00.000Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "API Connection Test",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/test",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"test"
+							]
+						},
+						"description": "Test the Groq API connection with a simple request."
+					},
+					"response": [
+						{
+							"name": "Successful Test",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/test",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"test"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": \"success\",\n    \"message\": \"Groq API connection is working\",\n    \"response\": \"Connection successful!\",\n    \"timestamp\": \"2025-09-27T10:30:00.000Z\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Service Information",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/info",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"info"
+							]
+						},
+						"description": "Get detailed information about the service capabilities, supported brands, and features."
+					},
+					"response": [
+						{
+							"name": "Service Info",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/info",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"info"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"service\": \"EV Battery & Vehicle Assistant\",\n    \"version\": \"1.0.0\",\n    \"description\": \"AI-powered assistant for EV queries in India\",\n    \"supportedBrands\": [\n        \"Tata Motors\",\n        \"Mahindra Electric\",\n        \"MG Motor India\",\n        \"Hyundai\",\n        \"Kia\",\n        \"BYD\",\n        \"Other Indian EV brands\"\n    ],\n    \"capabilities\": [\n        \"Battery health and diagnostics\",\n        \"Charging infrastructure guidance\",\n        \"Vehicle performance optimization\",\n        \"Warranty and maintenance advice\",\n        \"Troubleshooting support\"\n    ],\n    \"endpoints\": {\n        \"chat\": \"POST /api/chat - Ask EV-related questions\",\n        \"health\": \"GET /api/health - Service health check\",\n        \"info\": \"GET /api/info - Service information\"\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "Health checks and diagnostic endpoints to verify service functionality."
+		},
+		{
+			"name": "EV Chat Assistant",
+			"item": [
+				{
+					"name": "Ask EV Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"How to optimize battery life in Tata Nexon EV?\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat"
+							]
+						},
+						"description": "Ask any EV-related question and get expert answers from the AI assistant."
+					},
+					"response": [
+						{
+							"name": "Successful Response",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"How to optimize battery life in Tata Nexon EV?\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/chat",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"chat"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"question\": \"How to optimize battery life in Tata Nexon EV?\",\n    \"answer\": \"Answer: To optimize battery life in your Tata Nexon EV, follow these key practices:\\n\\n1. **Charging Habits**:\\n   - Maintain battery charge between 20-80% for daily use\\n   - Avoid frequent 100% charging unless needed for long trips\\n   - Use slow AC charging (7.2kW) regularly instead of fast DC charging\\n\\n2. **Driving Patterns**:\\n   - Use Eco mode for city driving\\n   - Utilize regenerative braking effectively\\n   - Maintain steady speeds and avoid aggressive acceleration\\n\\n3. **Temperature Management**:\\n   - Park in shaded areas when possible\\n   - Precondition the battery while plugged in during extreme weather\\n\\n4. **Regular Maintenance**:\\n   - Follow Tata's service schedule\\n   - Keep the battery management system updated\\n\\nReference: Tata Nexon EV Owner's Manual and Tata Motors EV Care Guidelines\",\n    \"timestamp\": \"2025-09-27T10:30:00.000Z\",\n    \"model\": \"llama3-8b-8192\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Battery Health Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"What does SoH mean in EV batteries and how can I check it?\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat"
+							]
+						},
+						"description": "Ask about battery health concepts like State of Health (SoH)."
+					},
+					"response": []
+				},
+				{
+					"name": "Charging Infrastructure Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Where can I find fast charging stations for my MG ZS EV in Delhi?\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat"
+							]
+						},
+						"description": "Ask about charging infrastructure and locations."
+					},
+					"response": []
+				},
+				{
+					"name": "Vehicle Troubleshooting",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"My Mahindra eKUV100 is showing a battery warning light. What should I do?\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat"
+							]
+						},
+						"description": "Ask about troubleshooting EV issues and warning lights."
+					},
+					"response": []
+				},
+				{
+					"name": "Range Optimization",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"How can I increase the driving range of my Hyundai Kona Electric?\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat"
+							]
+						},
+						"description": "Ask about optimizing EV range and efficiency."
+					},
+					"response": []
+				}
+			],
+			"description": "Main chat functionality for asking EV-related questions to the AI assistant."
+		},
+		{
+			"name": "Error Scenarios",
+			"item": [
+				{
+					"name": "Invalid Request - Empty Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat"
+							]
+						},
+						"description": "Test error handling for empty messages."
+					},
+					"response": [
+						{
+							"name": "Invalid Message Error",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/chat",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"chat"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Invalid message\",\n    \"message\": \"Please provide a valid question about EVs\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Invalid Request - No Message Field",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"question\": \"How does regenerative braking work?\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat"
+							]
+						},
+						"description": "Test error handling when 'message' field is missing."
+					},
+					"response": []
+				},
+				{
+					"name": "Rate Limit Error",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Test rate limit\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"chat"
+							]
+						},
+						"description": "Example of rate limit error response from Groq API."
+					},
+					"response": [
+						{
+							"name": "Rate Limit Exceeded",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"message\": \"Test rate limit\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/api/chat",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"chat"
+									]
+								}
+							},
+							"status": "Too Many Requests",
+							"code": 429,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"error\": \"Rate limit exceeded\",\n    \"message\": \"Groq API rate limit reached. Please try again in a moment.\"\n}"
+						}
+					]
+				}
+			],
+			"description": "Test cases for various error scenarios and edge cases."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:4500",
+			"type": "string",
+			"description": "Base URL for the FlexiEV Chat Service API"
+		}
+	]
+}

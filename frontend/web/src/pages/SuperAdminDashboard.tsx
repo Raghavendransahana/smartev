@@ -62,7 +62,7 @@ export const SuperAdminDashboard: React.FC = () => {
             title="Active Users Today"
             value="1,247"
             change={{ value: 12.5, type: 'increase' }}
-            icon={UsersIcon}
+            icon={<UsersIcon className="h-6 w-6 text-primary-600" />}
             trend={[
               { value: 1100 }, { value: 1150 }, { value: 1200 }, 
               { value: 1180 }, { value: 1220 }, { value: 1247 }
@@ -72,7 +72,7 @@ export const SuperAdminDashboard: React.FC = () => {
             title="EV Stations"
             value="342"
             change={{ value: 8.2, type: 'increase' }}
-            icon={MapPinIcon}
+            icon={<MapPinIcon className="h-6 w-6 text-primary-600" />}
             trend={[
               { value: 310 }, { value: 315 }, { value: 325 }, 
               { value: 335 }, { value: 338 }, { value: 342 }
@@ -82,7 +82,7 @@ export const SuperAdminDashboard: React.FC = () => {
             title="Battery Passports"
             value="15,423"
             change={{ value: 15.7, type: 'increase' }}
-            icon={Battery0Icon}
+            icon={<Battery0Icon className="h-6 w-6 text-primary-600" />}
             trend={[
               { value: 13200 }, { value: 13800 }, { value: 14200 }, 
               { value: 14800 }, { value: 15100 }, { value: 15423 }
@@ -92,7 +92,7 @@ export const SuperAdminDashboard: React.FC = () => {
             title="Pending Complaints"
             value="7"
             change={{ value: 30.0, type: 'decrease' }}
-            icon={ChartBarIcon}
+            icon={<ChartBarIcon className="h-6 w-6 text-primary-600" />}
             trend={[
               { value: 12 }, { value: 10 }, { value: 8 }, 
               { value: 9 }, { value: 8 }, { value: 7 }

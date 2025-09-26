@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import {
   ChevronUpIcon,
   ChevronDownIcon,
@@ -13,7 +13,7 @@ export interface Column<T> {
   header: string
   sortable?: boolean
   searchable?: boolean
-  render?: (value: any, item: T) => React.ReactNode
+  render?: (value: unknown, item: T) => React.ReactNode
   width?: string
 }
 
@@ -51,7 +51,7 @@ export function DataTable<T extends { id: string | number }>({
   const [selectedItems, setSelectedItems] = useState<Set<string | number>>(new Set())
 
   // Filter data based on search term
-  const filteredData = React.useMemo(() => {
+  const filteredData = useMemo(() => {
     if (!searchTerm) return data
 
     return data.filter(item =>
@@ -64,7 +64,7 @@ export function DataTable<T extends { id: string | number }>({
   }, [data, searchTerm, columns])
 
   // Sort data
-  const sortedData = React.useMemo(() => {
+  const sortedData = useMemo(() => {
     if (!sortColumn || !sortable) return filteredData
 
     return [...filteredData].sort((a, b) => {
@@ -86,7 +86,7 @@ export function DataTable<T extends { id: string | number }>({
   }, [filteredData, sortColumn, sortDirection, sortable])
 
   // Paginate data
-  const paginatedData = React.useMemo(() => {
+  const paginatedData = useMemo(() => {
     if (!pagination) return sortedData
     const startIndex = (currentPage - 1) * pageSize
     return sortedData.slice(startIndex, startIndex + pageSize)

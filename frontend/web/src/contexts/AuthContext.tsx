@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
 
 export type UserRole = 'Super Admin' | 'Admin' | 'Seller'
 
@@ -45,30 +45,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Initialize auth state from localStorage and validate token
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const token = localStorage.getItem('auth_token')
-        
-        if (token) {
-          // Validate token with backend
-          await validateToken(token)
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error)
-        // Clear invalid data
-        localStorage.removeItem('auth_token')
-        localStorage.removeItem('user_data')
-      } finally {
-        setIsLoading(false)
-      }
+  const applyStoredUser = useCallback(() => {
+    const storedUser = localStorage.getItem('user_data')
+    if (!storedUser) return null
+    try {
+      const parsedUser = JSON.parse(storedUser) as User
+      setUser(parsedUser)
+      return parsedUser
+    } catch (error) {
+      console.warn('Unable to parse stored user data:', error)
+      localStorage.removeItem('user_data')
+      return null
     }
-
-    initAuth()
   }, [])
 
-  const validateToken = async (token: string) => {
+  const validateToken = useCallback(async (token: string) => {
+    if (!token) return false
+
+    // Skip network validation when offline to avoid infinite retries
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return applyStoredUser() !== null
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/auth/validate`, {
         method: 'POST',
@@ -81,21 +79,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const data = await response.json()
         setUser(data.user)
-      } else {
-        throw new Error('Token validation failed')
+        return true
       }
+      throw new Error('Token validation failed')
     } catch (error) {
       console.error('Token validation error:', error)
-      // Fallback to mock data for development
-      const userData = localStorage.getItem('user_data')
-      if (userData) {
-        const parsedUser = JSON.parse(userData)
-        setUser(parsedUser)
+      return applyStoredUser() !== null
+    }
+  }, [applyStoredUser])
+
+  // Initialize auth state from localStorage and validate token
+  useEffect(() => {
+    let isMounted = true
+
+    const initAuth = async () => {
+      try {
+        const storedUser = applyStoredUser()
+        const token = localStorage.getItem('auth_token')
+
+        if (token) {
+          const isValid = await validateToken(token)
+          if (!isValid && storedUser) {
+            // Keep stored user for dev environments when backend unavailable
+            setUser(storedUser)
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error)
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('user_data')
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
     }
-  }
 
-  const login = async (email: string, password: string, role: string): Promise<boolean> => {
+    void initAuth()
+
+    return () => {
+      isMounted = false
+    }
+  }, [applyStoredUser, validateToken])
+
+  const login = useCallback(async (email: string, password: string, role: string): Promise<boolean> => {
     setIsLoading(true)
     
     try {
@@ -151,33 +178,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_data')
     setUser(null)
-  }
+  }, [])
 
-  const updateUser = (updates: Partial<User>) => {
+  const updateUser = useCallback((updates: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...updates }
       setUser(updatedUser)
       localStorage.setItem('user_data', JSON.stringify(updatedUser))
     }
-  }
+  }, [user])
 
-  const hasRole = (role: UserRole): boolean => {
+  const hasRole = useCallback((role: UserRole): boolean => {
     return user?.role === role
-  }
+  }, [user?.role])
 
-  const canAccess = (requiredRoles: UserRole[]): boolean => {
+  const canAccess = useCallback((requiredRoles: UserRole[]): boolean => {
     return user ? requiredRoles.includes(user.role) : false
-  }
+  }, [user])
 
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = useCallback((permission: string): boolean => {
     return user?.permissions?.includes(permission) || false
-  }
+  }, [user?.permissions])
 
   const getNameByRole = (role: string): string => {
     switch (role.toLowerCase()) {
@@ -221,7 +248,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     login,
     logout,
@@ -231,7 +258,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     hasRole,
     canAccess,
     hasPermission,
-  }
+  }), [user, login, logout, updateUser, isLoading, hasRole, canAccess, hasPermission])
 
   return (
     <AuthContext.Provider value={value}>

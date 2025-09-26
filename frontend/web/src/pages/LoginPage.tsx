@@ -4,8 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
-import { Badge } from '../components/ui/Badge'
-import { Zap, Shield, Users, ShoppingCart } from 'lucide-react'
+import { Zap } from 'lucide-react'
 
 export const LoginPage: React.FC = () => {
   const { user, login, isLoading } = useAuth()

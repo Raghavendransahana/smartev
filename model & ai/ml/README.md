@@ -40,12 +40,12 @@ Then select option 1 for the complete system!
    python live_simulator.py
    ```
 
-2. **Start Colorful Dashboard**:
+2. **Start Flexi-EV Dashboard**:
    ```bash
-   python colorful_dashboard.py
+   python flexi_ev_dashboard.py
    ```
 
-3. **Access Dashboard**: Open http://127.0.0.1:8052
+3. **Access Dashboard**: Open http://127.0.0.1:8055
 
 ## 📁 Project Structure
 
@@ -53,14 +53,14 @@ Then select option 1 for the complete system!
 battery_twin_project/
 ├── 🚀 launch_battery_twin.py     # Main launcher with menu
 ├── 🔄 live_simulator.py          # Real-time trip simulation
-├── 🌈 colorful_dashboard.py      # Beautiful live dashboard
-├── 📊 ultra_simple_dashboard.py  # Lightweight dashboard backup
-├── 🔋 realtime_battery_monitor.py # Complete monitoring system
-├── 📱 simple_monitor.py          # Basic monitoring without DB
+├── 🌈 flexi_ev_dashboard.py      # Beautiful Flexi-EV themed dashboard
+├── 🤖 run_flexi_ev.py            # Chatbot server launcher
+├── � flexi-ev-chatbot.html      # Interactive chatbot interface
+├── 🎨 flexi-ev-styles.css        # Flexi-EV styling
+├── ⚡ flexi-ev-script.js          # Chatbot functionality
 ├── data/                         # Battery datasets
 ├── models/                       # Trained AI models
-├── notebooks/                    # Analysis notebooks
-└── src/                         # Core modules
+└── notebooks/                    # Analysis notebooks
 ```
 
 ## 🎯 System Components
@@ -71,7 +71,7 @@ battery_twin_project/
 - Saves data to `live_trip_data.json`
 - Runs continuously in background
 
-### 🌈 Colorful Dashboard (`colorful_dashboard.py`)
+### 🌈 Flexi-EV Dashboard (`flexi_ev_dashboard.py`)
 - **Metric Cards**: Voltage, SOH, Temperature, Current, Status
 - **Live Charts**: 6 real-time parameter visualizations
 - **Trip Phases**: Visual indicators for driving conditions
@@ -129,8 +129,8 @@ scikit-learn>=1.0.0
 ## 🔧 Configuration
 
 ### Dashboard Settings
-- **Port**: 8052 (configurable)
-- **Update Interval**: 2 seconds
+- **Port**: 8055 (configurable)
+- **Update Interval**: 3 seconds
 - **Auto-refresh**: Enabled
 - **Data Source**: `live_trip_data.json`
 
@@ -150,8 +150,8 @@ python launch_battery_twin.py
 
 ### Dashboard Only
 ```bash
-python colorful_dashboard.py
-# Access: http://127.0.0.1:8052
+python flexi_ev_dashboard.py
+# Access: http://127.0.0.1:8055
 ```
 
 ### Live Data Generation

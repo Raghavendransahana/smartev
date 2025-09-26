@@ -1,7 +1,3 @@
-# ============================================================================
-# 🔄 LIVE DATA SIMULATOR - Real-Time Battery Trip Simulation
-# ============================================================================
-
 import json
 import time
 import random
@@ -22,7 +18,6 @@ class LiveBatterySimulator:
         self.reading_count = 0
         self.simulation_thread = None
         
-        # Initial realistic values
         self.voltage = 3.75
         self.current = 1.8
         self.temperature = 25.0
@@ -49,83 +44,72 @@ class LiveBatterySimulator:
             self.voltage += random.uniform(-0.02, -0.01)  # Gradual voltage drop
             self.current = random.uniform(2.5, 3.5)       # High discharge
             self.temperature += random.uniform(0.1, 0.3)   # Warming up
-            self.soc -= random.uniform(1.0, 2.0)          # Fast SOC drop
+            self.soc -= random.uniform(0.8, 1.5)          # Steady discharge
             
         elif self.trip_phase == "city":
-            # City driving: variable discharge, moderate warming
-            self.voltage += random.uniform(-0.01, 0.01)    # Variable voltage
-            self.current = random.uniform(1.0, 2.5)        # Variable discharge
+            # City driving: variable load, moderate discharge
+            self.voltage += random.uniform(-0.01, 0.01)   # Variable voltage
+            self.current = random.uniform(1.0, 2.5)       # Variable discharge
             self.temperature += random.uniform(0.0, 0.2)   # Moderate warming
-            self.soc -= random.uniform(0.5, 1.2)          # Moderate SOC drop
+            self.soc -= random.uniform(0.3, 0.8)          # Moderate discharge
             
         elif self.trip_phase == "parking":
             # Parked: minimal drain, cooling down
-            self.voltage += random.uniform(-0.005, 0.005)  # Stable voltage
-            self.current = random.uniform(0.1, 0.3)        # Low drain
-            self.temperature -= random.uniform(0.1, 0.2)   # Cooling down
-            self.soc -= random.uniform(0.1, 0.3)          # Minimal SOC drop
+            self.voltage += random.uniform(-0.005, 0.005) # Stable voltage
+            self.current = random.uniform(0.1, 0.3)       # Very low drain
+            self.temperature += random.uniform(-0.2, -0.1) # Cooling down
+            self.soc -= random.uniform(0.1, 0.3)          # Minimal discharge
             
         elif self.trip_phase == "charging":
-            # Charging: voltage rising, warming, SOC increasing
-            self.voltage += random.uniform(0.01, 0.02)     # Voltage rising
-            self.current = random.uniform(-2.5, -1.5)      # Negative (charging)
+            # Charging: voltage rises, warming up, SOC increases
+            self.voltage += random.uniform(0.01, 0.02)    # Rising voltage
+            self.current = -random.uniform(1.5, 2.5)      # Negative current (charging)
             self.temperature += random.uniform(0.2, 0.4)   # Warming during charge
-            self.soc += random.uniform(2.0, 4.0)          # SOC increasing
+            self.soc += random.uniform(2.0, 4.0)          # Increasing SOC
         
         # Apply realistic constraints
-        self.voltage = max(3.2, min(4.1, self.voltage))
-        self.temperature = max(15.0, min(45.0, self.temperature))
-        self.soc = max(10.0, min(100.0, self.soc))
+        self.voltage = max(3.0, min(4.2, self.voltage))  # Battery voltage limits
+        self.temperature = max(15.0, min(45.0, self.temperature))  # Temperature limits
+        self.soc = max(10.0, min(100.0, self.soc))       # SOC limits
+        self.soh = max(70.0, min(100.0, self.soh - random.uniform(0, 0.001)))  # Gradual degradation
         
-        # SOH gradually decreases with cycles (very slowly)
-        if random.random() < 0.1:  # 10% chance per reading
-            self.soh -= random.uniform(0.01, 0.05)
-            self.rul -= random.uniform(1.0, 3.0)
+        # Update RUL based on SOH
+        self.rul = self.soh * 15  # Approximate relationship
         
-        self.soh = max(50.0, min(100.0, self.soh))
-        self.rul = max(500.0, min(2000.0, self.rul))
-        
-        # Cycle count increases occasionally
-        if random.random() < 0.05:  # 5% chance
-            self.cycle_count += 1
-    
     def change_trip_phase(self):
-        """Change to a different trip phase"""
+        """Change trip phase randomly"""
         phases = ["highway", "city", "parking", "charging"]
-        current_index = phases.index(self.trip_phase)
         
-        # Weighted random selection for realistic transitions
-        if self.trip_phase == "highway":
-            self.trip_phase = random.choice(["city", "parking"])
-        elif self.trip_phase == "city":
-            self.trip_phase = random.choice(["highway", "parking", "charging"])
-        elif self.trip_phase == "parking":
-            self.trip_phase = random.choice(["city", "charging"])
-        elif self.trip_phase == "charging":
-            self.trip_phase = random.choice(["city", "highway"])
+        # Remove current phase to ensure change
+        available_phases = [p for p in phases if p != self.trip_phase]
+        self.trip_phase = random.choice(available_phases)
         
-        # Set duration for new phase (5-15 readings)
-        self.phase_duration = random.randint(5, 15)
+        # Set duration for this phase (10-20 readings)
+        self.phase_duration = random.randint(8, 15)
         self.phase_timer = 0
         
-        print(f"🔄 Trip phase changed to: {self.trip_phase.upper()}")
+        print(f"Trip phase changed to: {self.trip_phase.upper()}")
     
     def classify_battery(self, soh):
-        """Classify battery based on SOH"""
-        if soh >= 70:
-            return {"decision": "REUSE", "color": "🟢", "value": f"${int(soh * 3)}/kWh"}
-        elif soh >= 60:
-            return {"decision": "REFURBISH", "color": "🟡", "value": f"${int(soh * 2)}/kWh"}
-        elif soh >= 40:
-            return {"decision": "RECYCLE", "color": "🟠", "value": "$25/kWh"}
+        """Classify battery health"""
+        if soh >= 90:
+            return "Excellent"
+        elif soh >= 80:
+            return "Good"
+        elif soh >= 70:
+            return "Fair"
         else:
-            return {"decision": "DISPOSE", "color": "🔴", "value": "$50 disposal fee"}
+            return "Poor"
     
     def generate_reading(self):
-        """Generate a single realistic reading"""
-        self.reading_count += 1
+        """Generate one realistic battery reading"""
+        # Simulate realistic trip conditions
         self.simulate_real_trip_conditions()
         
+        # Increment reading count
+        self.reading_count += 1
+        
+        # Create reading with current values
         reading = {
             "reading_number": self.reading_count,
             "timestamp": datetime.now().isoformat(),
@@ -157,9 +141,9 @@ class LiveBatterySimulator:
     
     def run_simulation(self):
         """Run continuous simulation"""
-        print("🚗 Starting Live Battery Trip Simulation...")
-        print("📊 Generating realistic data every 2 seconds")
-        print("🔄 Trip phases: Highway → City → Parking → Charging")
+        print("Starting Live Battery Trip Simulation...")
+        print("Generating realistic data every 2 seconds")
+        print("Trip phases: Highway -> City -> Parking -> Charging")
         
         # Initialize first phase
         self.change_trip_phase()
@@ -174,14 +158,7 @@ class LiveBatterySimulator:
                 self.save_live_data()
                 
                 # Display current status
-                status_emoji = {
-                    "highway": "🛣️",
-                    "city": "🏙️", 
-                    "parking": "🅿️",
-                    "charging": "🔌"
-                }
-                
-                print(f"{status_emoji.get(self.trip_phase, '🚗')} Reading #{self.reading_count}: "
+                print(f"Reading #{self.reading_count}: "
                       f"V={reading['voltage']:.2f}V, I={reading['current']:.1f}A, "
                       f"T={reading['temperature']:.1f}°C, SOC={reading['soc']:.1f}%, "
                       f"SOH={reading['soh']:.1f}% [{self.trip_phase}]")
@@ -190,7 +167,7 @@ class LiveBatterySimulator:
                 time.sleep(2)
                 
             except Exception as e:
-                print(f"⚠️ Simulation error: {e}")
+                print(f"Simulation error: {e}")
                 time.sleep(2)
     
     def start(self):
@@ -200,18 +177,18 @@ class LiveBatterySimulator:
             self.simulation_thread = threading.Thread(target=self.run_simulation)
             self.simulation_thread.daemon = True
             self.simulation_thread.start()
-            print("✅ Live simulation started!")
+            print("Live simulation started!")
     
     def stop(self):
         """Stop the simulation"""
         self.is_running = False
         if self.simulation_thread:
             self.simulation_thread.join(timeout=5)
-        print("🛑 Live simulation stopped!")
+        print("Live simulation stopped!")
 
 def main():
     """Main function"""
-    print("🔄 LIVE BATTERY DATA SIMULATOR")
+    print("LIVE BATTERY DATA SIMULATOR")
     print("="*50)
     
     simulator = LiveBatterySimulator()
@@ -219,18 +196,20 @@ def main():
     try:
         simulator.start()
         
-        print("\n📊 Simulation running! Press Ctrl+C to stop.")
-        print("📁 Data saved to: live_trip_data.json")
-        print("🌐 Use this data in your dashboard!")
+        print()
+        print("Simulation running! Press Ctrl+C to stop.")
+        print("Data saved to: live_trip_data.json")
+        print("Use this data in your dashboard!")
         
         # Keep main thread alive
         while True:
             time.sleep(1)
             
     except KeyboardInterrupt:
-        print("\n🛑 Stopping simulation...")
+        print()
+        print("Stopping simulation...")
         simulator.stop()
-        print("👋 Simulation stopped!")
+        print("Simulation stopped!")
 
 if __name__ == "__main__":
     main()

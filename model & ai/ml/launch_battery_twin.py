@@ -7,8 +7,6 @@ import subprocess
 import sys
 import os
 import time
-import json
-import threading
 from datetime import datetime
 
 class BatteryTwinLauncher:
@@ -32,16 +30,23 @@ class BatteryTwinLauncher:
     
     def check_dependencies(self):
         """Check if required dependencies are installed"""
-        required_packages = [
-            'dash', 'plotly', 'pandas', 'numpy', 'torch', 'sklearn'
-        ]
+        # Package name mapping: import_name -> pip_name
+        required_packages = {
+            'dash': 'dash',
+            'plotly': 'plotly', 
+            'pandas': 'pandas',
+            'numpy': 'numpy',
+            'torch': 'torch',
+            'sklearn': 'scikit-learn',
+            'joblib': 'joblib'
+        }
         
         missing = []
-        for package in required_packages:
+        for import_name, pip_name in required_packages.items():
             try:
-                __import__(package)
+                __import__(import_name)
             except ImportError:
-                missing.append(package)
+                missing.append(pip_name)
         
         if missing:
             print(f"❌ Missing packages: {', '.join(missing)}")
@@ -96,13 +101,13 @@ class BatteryTwinLauncher:
             return False
     
     def start_dashboard(self):
-        """Start the colorful dashboard"""
+        """Start the Flexi-EV dashboard"""
         try:
-            dashboard_path = os.path.join(self.project_dir, 'colorful_dashboard.py')
+            dashboard_path = os.path.join(self.project_dir, 'flexi_ev_dashboard.py')
             if os.path.exists(dashboard_path):
-                print("🌈 Starting colorful dashboard...")
-                print("🌐 Dashboard will be available at: http://127.0.0.1:8052")
-                print("🔄 Auto-refreshes every 2 seconds with live data")
+                print("🌈 Starting Flexi-EV dashboard...")
+                print("🌐 Dashboard will be available at: http://127.0.0.1:8055")
+                print("🔄 Auto-refreshes every 3 seconds with live data")
                 print("👀 Watch the battery parameters change in real-time!")
                 
                 # Start dashboard

@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
@@ -89,35 +89,37 @@ const MoreScreen: React.FC = () => {
   const navigation = useNavigation<MoreScreenNavigationProp>();
   const [loggingOut, setLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setLoggingOut(true);
-              console.log('MoreScreen - Starting logout process...');
-              await logout();
-              console.log('MoreScreen - Logout completed successfully');
-              // Small delay to ensure logout is processed before navigation
-              await new Promise(resolve => setTimeout(resolve, 100));
-              // The AuthContext will handle the navigation automatically
-            } catch (error) {
-              console.error('MoreScreen - Logout error:', error);
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            } finally {
-              setLoggingOut(false);
-            }
-          }
-        },
-      ]
-    );
+  // Test function to verify logout works (can be called from console)
+  const testLogout = async () => {
+    console.log('MoreScreen - Test logout called directly');
+    try {
+      setLoggingOut(true);
+      console.log('MoreScreen - Test logout starting...');
+      await logout();
+      console.log('MoreScreen - Test logout successful');
+      
+      // Use same navigation logic as main logout
+      await new Promise(resolve => setTimeout(resolve, 200));
+      try {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          })
+        );
+        console.log('MoreScreen - Test logout navigation completed');
+      } catch (navError) {
+        console.log('MoreScreen - Test logout navigation failed, relying on AppNavigator:', navError);
+      }
+    } catch (error) {
+      console.error('MoreScreen - Test logout failed:', error);
+    } finally {
+      setLoggingOut(false);
+    }
   };
+
+  // Make testLogout available globally for debugging
+  (global as any).testLogout = testLogout;
 
   const renderFeatureCard = (feature: FeatureCard) => (
     <TouchableOpacity
@@ -126,15 +128,13 @@ const MoreScreen: React.FC = () => {
         styles.featureCard,
         { 
           backgroundColor: theme.colors.surface,
-          width: isSmallScreen ? '100%' : cardWidth,
-          marginBottom: 12,
         },
       ]}
       onPress={() => navigation.navigate(feature.screen as keyof RootStackParamList)}
       activeOpacity={0.7}
     >
       <View style={[styles.iconContainer, { backgroundColor: feature.color }]}>
-        <Ionicons name={feature.icon} size={28} color="white" />
+        <Ionicons name={feature.icon} size={isSmallScreen ? 24 : 28} color="white" />
       </View>
       <View style={styles.cardContent}>
         <Text style={[styles.cardTitle, { color: theme.colors.text }]}>
@@ -146,7 +146,7 @@ const MoreScreen: React.FC = () => {
       </View>
       <Ionicons 
         name="chevron-forward" 
-        size={20} 
+        size={isSmallScreen ? 16 : 20} 
         color={theme.colors.textSecondary} 
         style={styles.chevron}
       />
@@ -177,10 +177,14 @@ const MoreScreen: React.FC = () => {
               </Text>
             </View>
           </View>
-          <TouchableOpacity 
+          
+          {/* Direct Logout Button */}
+          <TouchableOpacity
             style={[styles.logoutButton, { backgroundColor: '#ef4444', paddingVertical: isSmallScreen ? 10 : 12 }]}
-            onPress={handleLogout}
+            onPress={testLogout}
             disabled={loggingOut}
+            activeOpacity={0.7}
+            testID="logout-button"
           >
             {loggingOut ? (
               <ActivityIndicator color="white" size="small" />
@@ -191,16 +195,6 @@ const MoreScreen: React.FC = () => {
               </>
             )}
           </TouchableOpacity>
-        </View>
-
-        {/* Header Section */}
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
-            More Features
-          </Text>
-          <Text style={[styles.headerSubtitle, { color: theme.colors.textSecondary }]}>
-            Explore additional FlexiEVChain capabilities
-          </Text>
         </View>
 
         {/* Quick Stats */}
@@ -236,11 +230,11 @@ const MoreScreen: React.FC = () => {
 
         {/* Features Grid */}
         <View style={styles.featuresContainer}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: isSmallScreen ? 18 : 20 }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: isSmallScreen ? 16 : 20 }]}>
             Advanced Features
           </Text>
           
-          <View style={[styles.featuresGrid, { flexDirection: isSmallScreen ? 'column' : 'row' }]}>
+          <View style={styles.featuresGrid}>
             {features.map(renderFeatureCard)}
           </View>
         </View>
@@ -287,23 +281,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 20,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: width < 400 ? 24 : 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  headerSubtitle: {
-    fontSize: width < 400 ? 14 : 16,
-    textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 20,
-  },
   statsContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
@@ -337,8 +314,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   featuresContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
+    paddingHorizontal: isSmallScreen ? 12 : 16,
+    marginBottom: isSmallScreen ? 16 : 24,
   },
   sectionTitle: {
     fontSize: 20,
@@ -346,44 +323,47 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   featuresGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 12,
+    flexDirection: 'column',
+    gap: isSmallScreen ? 8 : 12,
   },
   featureCard: {
-    borderRadius: 12,
-    padding: width < 400 ? 12 : 16,
+    borderRadius: isSmallScreen ? 10 : 12,
+    padding: isSmallScreen ? 12 : 16,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    marginBottom: 12,
+    marginBottom: isSmallScreen ? 8 : 12,
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: width < 400 ? 70 : 80,
+    minHeight: isSmallScreen ? 60 : 80,
+    width: '100%',
     ...(Platform.OS === 'web' && { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
   } as any,
   iconContainer: {
-    width: width < 400 ? 40 : 48,
-    height: width < 400 ? 40 : 48,
-    borderRadius: width < 400 ? 20 : 24,
+    width: isSmallScreen ? 36 : 48,
+    height: isSmallScreen ? 36 : 48,
+    borderRadius: isSmallScreen ? 18 : 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: width < 400 ? 10 : 12,
+    marginRight: isSmallScreen ? 12 : 16,
+    flexShrink: 0,
   },
   cardContent: {
     flex: 1,
+    paddingRight: isSmallScreen ? 8 : 12,
   },
   cardTitle: {
-    fontSize: width < 400 ? 14 : 16,
+    fontSize: isSmallScreen ? 14 : 16,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: isSmallScreen ? 2 : 4,
+    lineHeight: isSmallScreen ? 18 : 20,
   },
   cardSubtitle: {
-    fontSize: width < 400 ? 12 : 14,
-    lineHeight: width < 400 ? 16 : 18,
+    fontSize: isSmallScreen ? 11 : 14,
+    lineHeight: isSmallScreen ? 14 : 18,
+    opacity: 0.8,
   },
   chevron: {
     marginLeft: 8,

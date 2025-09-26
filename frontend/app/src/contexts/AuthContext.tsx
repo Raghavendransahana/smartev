@@ -110,21 +110,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
+    console.log('AuthContext - logout function called');
+    console.log('AuthContext - Current user before logout:', user);
+    console.log('AuthContext - Current token before logout:', token ? 'exists' : 'null');
+    
     try {
       // Clear API token first
+      console.log('AuthContext - Clearing API token...');
       flexiEVAPI.setAuthToken('');
       
       // Clear stored auth data
+      console.log('AuthContext - Clearing AsyncStorage...');
       await Promise.all([
         AsyncStorage.removeItem(TOKEN_KEY),
         AsyncStorage.removeItem(USER_KEY),
       ]);
+      console.log('AuthContext - AsyncStorage cleared successfully');
       
       // Clear state last to trigger re-render
+      console.log('AuthContext - Clearing state...');
       setUser(null);
       setToken(null);
+      console.log('AuthContext - State cleared, logout complete');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('AuthContext - Logout error:', error);
       throw error; // Re-throw to handle in UI
     }
   };

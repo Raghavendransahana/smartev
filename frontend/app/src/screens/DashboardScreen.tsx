@@ -5,25 +5,17 @@ import {
   ScrollView,
   StyleSheet,
   RefreshControl,
-  TouchableOpacity,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useVehicle } from '@/contexts/VehicleContext';
 import { createStyles } from '@/theme/styles';
-import { RootStackParamList } from '@/navigation/AppNavigator';
-import DashboardCard from '@/components/DashboardCard';
-import Gauge from '@/components/Gauge';
-import BatteryChart from '@/components/BatteryChart';
-
-type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Dashboard'>;
+import { dashboardPalette, shadowStyles } from '@/theme/dashboardPalette';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
   const { vehicleState, isConnected } = useVehicle();
-  const navigation = useNavigation<DashboardScreenNavigationProp>();
   const styles = createStyles(theme);
   
   const [refreshing, setRefreshing] = React.useState(false);
@@ -36,8 +28,17 @@ const DashboardScreen: React.FC = () => {
     }, 2000);
   }, []);
 
-  const mockBatteryData = [65, 70, 68, 72, 75, 78, 76];
-  const mockBatteryLabels = ['6h', '5h', '4h', '3h', '2h', '1h', 'Now'];
+  const vehicleImage = 'https://images.pexels.com/photos/4517067/pexels-photo-4517067.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260';
+
+  const detailRows = [
+    { label: 'Manufacturer', value: 'Tata Motors' },
+    { label: 'City and address', value: 'Coimbatore, Tamil Nadu' },
+    { label: 'Battery owner status', value: vehicleState.isCharging ? 'Charging' : 'Idle' },
+    { label: 'State of Charge', value: `${vehicleState.batteryLevel}%` },
+    { label: 'State of Health', value: '96%' },
+    { label: 'Cycles Completed', value: '142' },
+    { label: 'Warranty Status', value: 'Active - 1y remaining' },
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -48,184 +49,56 @@ const DashboardScreen: React.FC = () => {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Connection Status */}
-        <View style={[screenStyles.statusCard, { 
-          backgroundColor: isConnected ? theme.colors.success + '20' : theme.colors.error + '20' 
-        }]}>
-          <Text style={[styles.body, { 
-            color: isConnected ? theme.colors.success : theme.colors.error 
-          }]}>
-            {isConnected ? '🟢 Vehicle Connected' : '🔴 Vehicle Disconnected'}
-          </Text>
+        <View
+          style={screenStyles.heroCard}
+        >
+          <View style={screenStyles.heroHeader}>
+            <View>
+              <Text style={screenStyles.vehicleTitle}>Tata Punch EV</Text>
+              <View style={screenStyles.vehicleIdPill}>
+                <Text style={screenStyles.vehicleIdText}>345678123ALPHA</Text>
+              </View>
+            </View>
+            <View style={[screenStyles.connectionPill, { backgroundColor: isConnected ? '#22c55e33' : '#ef444433' }]}>
+              <Text style={[screenStyles.connectionText, { color: isConnected ? '#22c55e' : '#ef4444' }]}>
+                {isConnected ? 'Connected' : 'Disconnected'}
+              </Text>
+            </View>
+          </View>
+
+          <Image source={{ uri: vehicleImage }} style={screenStyles.vehicleImage} />
+
+          <View style={screenStyles.statusRow}>
+            <View style={screenStyles.infoCard}>
+              <Text style={screenStyles.cardLabel}>🔋 Battery</Text>
+              <Text style={screenStyles.cardSubtext}>Battery is {vehicleState.isCharging ? 'charging' : 'idle'}</Text>
+              <Text style={screenStyles.cardValue}>{vehicleState.batteryLevel}%</Text>
+              <Text style={screenStyles.cardFooter}>Charging complete</Text>
+            </View>
+            <View style={screenStyles.infoCard}>
+              <Text style={screenStyles.cardLabel}>🚗 Driven</Text>
+              <Text style={screenStyles.cardSubtext}>This week</Text>
+              <Text style={screenStyles.cardValue}>{Math.round(vehicleState.odometer ?? 4330)}</Text>
+              <Text style={screenStyles.cardFooter}>Kilometers completed</Text>
+            </View>
+          </View>
         </View>
 
-        {/* Main Gauges */}
-        <View style={screenStyles.gaugeContainer}>
-          <Gauge
-            value={vehicleState.batteryLevel}
-            maxValue={100}
-            title="Battery Level"
-            unit="%"
-            color={theme.colors.success}
-          />
-          <Gauge
-            value={vehicleState.speed}
-            maxValue={160}
-            title="Speed"
-            unit=" km/h"
-            color={theme.colors.primary}
-          />
-        </View>
+        <View style={screenStyles.detailsContainer}>
+          <View
+            style={screenStyles.detailsHeader}
+          >
+            <Text style={screenStyles.detailsHeaderText}>Car Details</Text>
+          </View>
 
-        {/* Quick Stats */}
-        <View style={screenStyles.statsGrid}>
-          <DashboardCard
-            title="Range"
-            value={vehicleState.range}
-            unit="km"
-            subtitle="Estimated remaining"
-            style={screenStyles.statCard}
-          />
-          <DashboardCard
-            title="Battery Temp"
-            value={Math.round(vehicleState.batteryTemp)}
-            unit="°C"
-            subtitle={vehicleState.batteryTemp > 35 ? 'High' : 'Normal'}
-            style={screenStyles.statCard}
-          />
-        </View>
-
-        <View style={screenStyles.statsGrid}>
-          <DashboardCard
-            title="Efficiency"
-            value={vehicleState.efficiency.toFixed(1)}
-            unit="kWh/100km"
-            subtitle="Current trip"
-            style={screenStyles.statCard}
-          />
-          <DashboardCard
-            title="Odometer"
-            value={(vehicleState.odometer / 1000).toFixed(1)}
-            unit="k km"
-            subtitle="Total distance"
-            style={screenStyles.statCard}
-          />
-        </View>
-
-        {/* Charging Status */}
-        {vehicleState.isCharging && (
-          <DashboardCard
-            title="Charging"
-            value={vehicleState.chargingRate.toFixed(1)}
-            unit="kW"
-            subtitle="Currently charging"
-            style={[screenStyles.chargingCard, { borderColor: theme.colors.success }]}
-          />
-        )}
-
-        {/* Battery Chart */}
-        <BatteryChart
-          data={mockBatteryData}
-          labels={mockBatteryLabels}
-          title="Battery Level History"
-        />
-
-        {/* FlexiEVChain API Navigation */}
-        <View style={screenStyles.actionsContainer}>
-          <Text style={[styles.h3, screenStyles.actionsTitle]}>
-            FlexiEVChain APIs
-          </Text>
-          
-          <View style={screenStyles.actionsGrid}>
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('VehicleManagement')}
-            >
-              <Text style={screenStyles.actionIcon}>🚗</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                Vehicle Management
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('BatteryManagement')}
-            >
-              <Text style={screenStyles.actionIcon}>🔋</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                Battery Management
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('ChargingSessions')}
-            >
-              <Text style={screenStyles.actionIcon}>⚡</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                Charging Sessions
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('BlockchainExplorer')}
-            >
-              <Text style={screenStyles.actionIcon}>⛓️</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                Blockchain Explorer
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('Analytics')}
-            >
-              <Text style={screenStyles.actionIcon}>📊</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                Analytics & Insights
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('FleetManagement')}
-            >
-              <Text style={screenStyles.actionIcon}>🚛</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                Fleet Management
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('Ledger')}
-            >
-              <Text style={screenStyles.actionIcon}>�</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                Blockchain Ledger
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('SystemInfo')}
-            >
-              <Text style={screenStyles.actionIcon}>🔧</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                System Information
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.card, screenStyles.actionCard]}
-              onPress={() => navigation.navigate('Settings')}
-            >
-              <Text style={screenStyles.actionIcon}>⚙️</Text>
-              <Text style={[styles.body, screenStyles.actionText]}>
-                Settings
-              </Text>
-            </TouchableOpacity>
+          <View style={screenStyles.detailsCard}>
+            {detailRows.map((row, index) => (
+              <View key={row.label} style={screenStyles.detailRow}>
+                <Text style={screenStyles.detailLabel}>{row.label}</Text>
+                <Text style={screenStyles.detailValue}>{row.value}</Text>
+                {index !== detailRows.length - 1 && <View style={screenStyles.detailDivider} />}
+              </View>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -237,57 +110,131 @@ const screenStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: dashboardPalette.background,
   },
-  statusCard: {
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  gaugeContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  heroCard: {
+    backgroundColor: dashboardPalette.surface,
+    borderRadius: 24,
+    padding: 20,
     marginBottom: 24,
+    overflow: 'hidden',
+    ...shadowStyles,
   },
-  statsGrid: {
+  heroHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    alignItems: 'center',
   },
-  statCard: {
+  vehicleTitle: {
+    color: dashboardPalette.textPrimary,
+    fontSize: 26,
+    fontWeight: '700',
+  },
+  vehicleIdPill: {
+    marginTop: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: dashboardPalette.accentPrimary + '20',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  vehicleIdText: {
+    color: dashboardPalette.accentPrimary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  connectionPill: {
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  connectionText: {
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  vehicleImage: {
+    width: '100%',
+    height: 180,
+    marginVertical: 20,
+    borderRadius: 16,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  infoCard: {
     flex: 1,
-    marginHorizontal: 4,
+    backgroundColor: dashboardPalette.surfaceMuted,
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: dashboardPalette.border,
   },
-  chargingCard: {
-    borderWidth: 2,
-    marginBottom: 16,
+  cardLabel: {
+    color: dashboardPalette.accentPrimary,
+    fontSize: 14,
+    fontWeight: '600',
   },
-  actionsContainer: {
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  actionsTitle: {
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  actionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  actionCard: {
-    width: '48%',
-    alignItems: 'center',
-    paddingVertical: 20,
+  cardSubtext: {
+    color: dashboardPalette.textSecondary,
+    marginTop: 6,
     marginBottom: 12,
   },
-  actionIcon: {
-    fontSize: 32,
-    marginBottom: 8,
+  cardValue: {
+    color: dashboardPalette.textPrimary,
+    fontSize: 36,
+    fontWeight: '700',
   },
-  actionText: {
-    textAlign: 'center',
+  cardFooter: {
+    color: dashboardPalette.textSecondary,
+    marginTop: 4,
+  },
+  detailsContainer: {
+    marginBottom: 32,
+  },
+  detailsHeader: {
+    backgroundColor: dashboardPalette.surfaceAlt,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: dashboardPalette.border,
+  },
+  detailsHeaderText: {
+    color: dashboardPalette.textPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  detailsCard: {
+    backgroundColor: dashboardPalette.surface,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: dashboardPalette.border,
+  },
+  detailRow: {
+    paddingVertical: 12,
+  },
+  detailLabel: {
+    color: dashboardPalette.textSecondary,
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  detailValue: {
+    color: dashboardPalette.textPrimary,
+    fontSize: 15,
     fontWeight: '600',
+  },
+  detailDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: dashboardPalette.borderFaint,
+    marginTop: 12,
   },
 });
 

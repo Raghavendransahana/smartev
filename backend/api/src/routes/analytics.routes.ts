@@ -1,5 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middlewares/auth';
+import { wrapAsync } from '../middlewares/errorHandler';
 import { VehicleModel } from '../models/vehicle.model';
 import { BatteryLogModel } from '../models/batteryLog.model';
 import { ChargingSessionModel } from '../models/chargingSession.model';
@@ -12,13 +13,18 @@ const router = express.Router();
 // Vehicle analytics endpoints
 router.get('/vehicle/:vehicleId/summary',
   authMiddleware,
-  async (req, res) => {
+  wrapAsync(async (req, res) => {
+    const user = req.user as { _id: Types.ObjectId };
+    const { vehicleId } = req.params;
+    
+    if (!Types.ObjectId.isValid(vehicleId)) {
+      throw createHttpError(400, 'Invalid vehicle ID');
+    }
+    
     try {
-      const user = req.user as { _id: Types.ObjectId };
-      
       // Verify vehicle ownership
       const vehicle = await VehicleModel.findOne({
-        _id: req.params.vehicleId,
+        _id: vehicleId,
         owner: user._id
       });
       
@@ -28,40 +34,41 @@ router.get('/vehicle/:vehicleId/summary',
       
       // Get latest battery data
       const latestBattery = await BatteryLogModel
-        .findOne({ vehicle: req.params.vehicleId })
-        .sort({ timestamp: -1 });
+        .findOne({ vehicle: vehicleId })
+        .sort({ recordedAt: -1 });
       
       // Get charging statistics
       const chargingStats = await ChargingSessionModel.aggregate([
-        { $match: { vehicle: new Types.ObjectId(req.params.vehicleId) } },
+        { $match: { vehicle: new Types.ObjectId(vehicleId) } },
         {
           $group: {
             _id: null,
             totalSessions: { $sum: 1 },
-            totalEnergy: { $sum: '$energyConsumed' },
+            totalEnergy: { $sum: '$energyKWh' },
             totalCost: { $sum: '$cost' },
-            avgEnergyPerSession: { $avg: '$energyConsumed' }
+            avgEnergyPerSession: { $avg: '$energyKWh' }
           }
         }
       ]);
       
       // Get active alerts count
       const activeAlerts = await AlertModel.countDocuments({
-        vehicle: req.params.vehicleId,
+        vehicle: vehicleId,
         status: 'active'
       });
       
       const summary = {
         vehicle: {
           vin: vehicle.vin,
-          model: vehicle.model,
-          year: vehicle.year
+          brand: vehicle.brand,
+          model: vehicle.vehicleModel
         },
         batteryStatus: latestBattery ? {
-          level: latestBattery.batteryLevel,
-          health: latestBattery.batteryHealth,
+          level: latestBattery.stateOfCharge,
+          health: latestBattery.stateOfHealth,
           temperature: latestBattery.temperature,
-          lastUpdated: latestBattery.timestamp
+          cycleCount: latestBattery.cycleCount,
+          lastUpdated: latestBattery.recordedAt
         } : null,
         chargingStats: chargingStats[0] || {
           totalSessions: 0,
@@ -73,10 +80,13 @@ router.get('/vehicle/:vehicleId/summary',
       };
       
       res.json(summary);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.status) {
+        throw error;
+      }
       throw createHttpError(500, 'Failed to fetch vehicle summary');
     }
-  }
+  })
 );
 
 router.get('/vehicle/:vehicleId/battery-trends',

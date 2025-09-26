@@ -4,3 +4,9 @@ dist
 .env.*.local
 coverage
 .DS_Store
+
+logs/*
+logs/access.log
+logs/error.log
+logs/combined.log
+logs

@@ -138,11 +138,7 @@ router.patch('/:alertId/update',
       
       // Update alert fields
       if (req.body.status) {
-        alert.status = req.body.status;
-        if (req.body.status === 'resolved') {
-          alert.resolvedBy = user._id;
-          alert.resolvedAt = new Date();
-        }
+        alert.acknowledged = req.body.status === 'resolved';
       }
       
       await alert.save();

@@ -1,0 +1,748 @@
+{
+  "info": {
+    "name": "FlexiEVChain API",
+    "description": "Complete API collection for FlexiEVChain platform with MongoDB Atlas backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "flexievchain-api-collection",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    }
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/system/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "system", "status"]
+            },
+            "description": "Check if the API server is running"
+          },
+          "response": []
+        },
+        {
+          "name": "System Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/system/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "system", "info"]
+            },
+            "description": "Get system information and version details"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "User Registration",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.status === 'Created') {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Registration successful', () => {",
+                  "        pm.expect(response).to.have.property('token');",
+                  "        pm.expect(response.user).to.have.property('email');",
+                  "        pm.expect(response.user).to.not.have.property('passwordHash');",
+                  "    });",
+                  "    ",
+                  "    // Store the auth token for subsequent requests",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('authToken', response.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"role\": \"owner\",\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1-555-0123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "register"]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "User Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.status === 'OK') {",
+                  "    const response = pm.response.json();",
+                  "    pm.test('Login successful', () => {",
+                  "        pm.expect(response).to.have.property('token');",
+                  "        pm.expect(response.user).to.have.property('email');",
+                  "        pm.expect(response.user).to.not.have.property('passwordHash');",
+                  "    });",
+                  "    ",
+                  "    // Store the auth token for subsequent requests",
+                  "    if (response.token) {",
+                  "        pm.collectionVariables.set('authToken', response.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "login"]
+            },
+            "description": "Authenticate user and get JWT token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "profile"]
+            },
+            "description": "Get current user's profile (requires authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile\": {\n    \"firstName\": \"John\",\n    \"lastName\": \"Smith\",\n    \"phone\": \"+1-555-0199\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "profile"]
+            },
+            "description": "Update current user's profile (requires authentication)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vehicle Management",
+      "item": [
+        {
+          "name": "Register Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brand\": \"Tesla\",\n  \"vehicleModel\": \"Model 3\",\n  \"vin\": \"1HGBH41JXMN109186\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles"]
+            },
+            "description": "Register a new vehicle"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles"]
+            },
+            "description": "Get all vehicles owned by current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vehicle Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/:vehicleId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", ":vehicleId"],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "YOUR_VEHICLE_ID_HERE",
+                  "description": "Replace with actual vehicle ID"
+                }
+              ]
+            },
+            "description": "Get details of a specific vehicle"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Battery Management",
+      "item": [
+        {
+          "name": "Log Battery Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"YOUR_VEHICLE_ID_HERE\",\n  \"batteryLevel\": 85.5,\n  \"voltage\": 400.2,\n  \"temperature\": 32.1,\n  \"cycleCount\": 245,\n  \"healthPercentage\": 92.3,\n  \"chargingStatus\": \"not_charging\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/battery/log",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "battery", "log"]
+            },
+            "description": "Log battery telemetry data"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Battery History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/battery/:vehicleId/history?limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "battery", ":vehicleId", "history"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "YOUR_VEHICLE_ID_HERE",
+                  "description": "Replace with actual vehicle ID"
+                }
+              ]
+            },
+            "description": "Get battery data history for a vehicle"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Charging Management",
+      "item": [
+        {
+          "name": "Start Charging Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"YOUR_VEHICLE_ID_HERE\",\n  \"stationId\": \"STATION_001\",\n  \"location\": {\n    \"latitude\": 37.7749,\n    \"longitude\": -122.4194\n  },\n  \"chargingType\": \"fast\",\n  \"powerRating\": 150.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/charging/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "charging", "start"]
+            },
+            "description": "Start a new charging session"
+          },
+          "response": []
+        },
+        {
+          "name": "End Charging Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"YOUR_SESSION_ID_HERE\",\n  \"finalBatteryLevel\": 95.2,\n  \"energyConsumed\": 42.5,\n  \"cost\": 12.75\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/charging/end",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "charging", "end"]
+            },
+            "description": "End a charging session"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Charging History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/charging/:vehicleId/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "charging", ":vehicleId", "history"],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "YOUR_VEHICLE_ID_HERE",
+                  "description": "Replace with actual vehicle ID"
+                }
+              ]
+            },
+            "description": "Get charging history for a vehicle"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ownership Management",
+      "item": [
+        {
+          "name": "Transfer Vehicle Ownership",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"YOUR_VEHICLE_ID_HERE\",\n  \"newOwnerEmail\": \"newowner@example.com\",\n  \"transferReason\": \"sale\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ownership/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ownership", "transfer"]
+            },
+            "description": "Transfer vehicle ownership to another user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ownership History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/ownership/:vehicleId/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ownership", ":vehicleId", "history"],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "YOUR_VEHICLE_ID_HERE",
+                  "description": "Replace with actual vehicle ID"
+                }
+              ]
+            },
+            "description": "Get ownership transfer history for a vehicle"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Alerts & Notifications",
+      "item": [
+        {
+          "name": "Get User Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts?status=unread&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "unread"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get alerts for the current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Alert as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"read\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/:alertId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", ":alertId"],
+              "variable": [
+                {
+                  "key": "alertId",
+                  "value": "YOUR_ALERT_ID_HERE",
+                  "description": "Replace with actual alert ID"
+                }
+              ]
+            },
+            "description": "Mark an alert as read"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics & Reports",
+      "item": [
+        {
+          "name": "Get Vehicle Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/:vehicleId?period=30d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", ":vehicleId"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30d"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "vehicleId",
+                  "value": "YOUR_VEHICLE_ID_HERE",
+                  "description": "Replace with actual vehicle ID"
+                }
+              ]
+            },
+            "description": "Get analytics data for a vehicle"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Usage Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/summary?timeframe=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "summary"],
+              "query": [
+                {
+                  "key": "timeframe",
+                  "value": "monthly"
+                }
+              ]
+            },
+            "description": "Get usage summary for all user vehicles"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Blockchain Integration",
+      "item": [
+        {
+          "name": "Get Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blockchain/transactions?type=all&limit=25",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blockchain", "transactions"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "all"
+                },
+                {
+                  "key": "limit",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": "Get blockchain transaction history"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Transaction",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blockchain/verify/:txId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blockchain", "verify", ":txId"],
+              "variable": [
+                {
+                  "key": "txId",
+                  "value": "YOUR_TX_ID_HERE",
+                  "description": "Replace with actual transaction ID"
+                }
+              ]
+            },
+            "description": "Verify a blockchain transaction"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Pre-request script for the entire collection",
+          "console.log('Making request to FlexiEVChain API...');",
+          "",
+          "// Set default headers if needed",
+          "pm.request.headers.upsert({",
+          "    key: 'User-Agent',",
+          "    value: 'FlexiEVChain-Postman-Collection/1.0'",
+          "});"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script for the entire collection",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has valid JSON structure', function () {",
+          "    pm.response.to.have.jsonBody();",
+          "});",
+          "",
+          "// Log response for debugging",
+          "console.log('Response status:', pm.response.status);",
+          "console.log('Response time:', pm.response.responseTime + 'ms');"
+        ]
+      }
+    }
+  ]
+}

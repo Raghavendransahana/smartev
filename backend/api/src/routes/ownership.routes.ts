@@ -81,8 +81,8 @@ router.post('/approve',
       
       if (req.body.approved) {
         // Update transfer status
-        transfer.status = 'approved';
-        transfer.completedAt = new Date();
+        // Transfer approved - update vehicle ownership
+        await VehicleModel.findByIdAndUpdate(transfer.vehicle, { owner: transfer.newOwner });
         await transfer.save();
         
         // Update vehicle ownership
@@ -93,8 +93,7 @@ router.post('/approve',
         
         res.json({ message: 'Transfer approved and completed', transfer });
       } else {
-        transfer.status = 'rejected';
-        transfer.completedAt = new Date();
+        // Transfer rejected - no action needed beyond logging
         await transfer.save();
         
         res.json({ message: 'Transfer rejected', transfer });

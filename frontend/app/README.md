@@ -1,3 +1,7 @@
+# Run app
+npx expo start --tunnel --clear
+
+
 # FlexiEVChain Mobile App
 
 A comprehensive React Native + Expo application for interacting with the FlexiEVChain API ecosystem. This app provides multiple screens and interfaces to manage electric vehicles, battery data, charging sessions, blockchain transactions, and fleet operations.

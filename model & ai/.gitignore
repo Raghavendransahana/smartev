@@ -1,0 +1,70 @@
+# Python Virtual Environment
+.battery/
+venv/
+env/
+.env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Generated Data Files
+live_trip_data.json
+*.json.bak
+*_backup.json
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary Files
+*.tmp
+*.temp
+debug_*.py
+test_*.py
+
+# Logs
+*.log
+logs/
+
+# Model Artifacts (if you want to exclude large model files)
+# models/*.pth
+# models/*.pkl
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# Coverage Reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/

@@ -1,0 +1,34 @@
+node_modules/
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Build / cache
+dist/
+build/
+.cache/
+.next/
+.out/
+.parcel-cache/
+coverage/
+tmp/
+temp/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Misc
+pids/
+*.pid
+*.seed

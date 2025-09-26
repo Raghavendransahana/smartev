@@ -1,0 +1,28 @@
+{
+  "name": "smartev-battery-twin",
+  "version": "1.0.0",
+  "description": "SmartEV Battery Twin - Integrated ML Models with Express.js",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "python-api": "cd \"model & ai/ml\" && source mobility/bin/activate && python battery_api_server.py",
+    "setup": "npm install && cd \"model & ai/ml\" && source mobility/bin/activate && pip install flask flask-cors",
+    "test": "node test-integration.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0",
+    "body-parser": "^1.20.2",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["battery", "ml", "express", "smartev", "iot"],
+  "author": "SmartEV Team",
+  "license": "MIT"
+}

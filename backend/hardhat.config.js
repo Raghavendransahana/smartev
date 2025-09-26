@@ -30,7 +30,7 @@ module.exports = {
 
 //npx hardhat node
 // Commands to run
-// npx hardhat run scripts/deploy.js --network localhost
+// npx hardhat run scripts/deploy.ts --network localhost
 // npx hardhat test --network localhost
 // npx hardhat node
 //  

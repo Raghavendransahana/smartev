@@ -43,7 +43,29 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         TelemetryAlert,
         StatusChange,
         ComplianceCheck,
-        Recycling
+        Recycling,
+        TelemetryLog,
+        ChargingSession
+    }
+
+    enum ChargingStatus {
+        Unknown,
+        Charging,
+        NotCharging,
+        FastCharging
+    }
+
+    enum ChargingSessionStatus {
+        Active,
+        Completed,
+        Cancelled
+    }
+
+    enum TransferStatus {
+        Pending,
+        Approved,
+        Rejected,
+        Cancelled
     }
 
     struct BatteryMetadata {
@@ -76,6 +98,8 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         uint256 lastServiceDate;
         bool maintenanceRequired;
         bool criticalAlert;
+        uint256 voltage; // millivolts
+        ChargingStatus chargingStatus;
     }
 
     struct TelemetrySubmission {
@@ -109,6 +133,46 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         mapping(bytes32 => string) additionalData; // key = keccak256(abi.encodePacked(humanReadableKey))
     }
 
+    struct BatteryLogEntry {
+        uint256 logId;
+        bytes32 passportId;
+        uint256 stateOfCharge;
+        uint256 stateOfHealth;
+        int256 temperature;
+        uint256 voltage;
+        uint256 cycleCount;
+        ChargingStatus chargingStatus;
+        uint256 timestamp;
+        address recorder;
+    }
+
+    struct ChargingSession {
+        uint256 sessionId;
+        bytes32 passportId;
+        string chargerId;
+        string location;
+        uint256 startedAt;
+        uint256 endedAt;
+        uint256 energyKWh;
+        uint256 cost;
+        uint256 durationMinutes;
+        address initiatedBy;
+        address completedBy;
+        ChargingSessionStatus status;
+    }
+
+    struct OwnershipTransferRequest {
+        uint256 requestId;
+        bytes32 passportId;
+        address currentOwner;
+        address proposedOwner;
+        uint256 price;
+        string notes;
+        uint256 initiatedAt;
+        uint256 resolvedAt;
+        TransferStatus status;
+    }
+
     // -------------------- Storage --------------------
     mapping(bytes32 => Battery) private batteries; // passportId => Battery
     mapping(string => bytes32) public serialNumberToPassportId; // serialNumber => passportId (bytes32(0) means unregistered)
@@ -120,6 +184,27 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
     // Legacy mapping: stable legacy numeric battery ID -> passportId
     mapping(uint256 => bytes32) public legacyIdToPassportId;
     mapping(bytes32 => uint256) public passportIdToLegacyId;
+
+    // Battery logs storage
+    uint256 private _batteryLogIdCounter;
+    mapping(uint256 => BatteryLogEntry) private batteryLogs;
+    mapping(bytes32 => uint256[]) private passportToBatteryLogs;
+
+    // Charging session storage
+    uint256 private _chargingSessionCounter;
+    mapping(uint256 => ChargingSession) private chargingSessions;
+    mapping(bytes32 => uint256) private activeChargingSessionByPassport;
+    mapping(bytes32 => uint256[]) private passportToChargingSessions;
+
+    // Ownership transfer storage
+    uint256 private _ownershipTransferCounter;
+    mapping(uint256 => OwnershipTransferRequest) private ownershipTransferRequests;
+    mapping(bytes32 => uint256) private pendingTransferRequestByPassport;
+    mapping(bytes32 => uint256[]) private passportToTransferRequests;
+
+    // External vehicle linkage (hashed identifiers)
+    mapping(bytes32 => bytes32) private passportToExternalVehicleHash;
+    mapping(bytes32 => bytes32) private externalVehicleHashToPassport;
 
     // -------------------- Constants --------------------
     bytes32 private constant _TELEMETRY_TYPEHASH = keccak256(
@@ -144,6 +229,69 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
     event RepurposeDecision(bytes32 indexed passportId, bool eligible, uint256 soh, uint256 timestamp);
     event OperatorHandoff(bytes32 indexed passportId, string entityId, uint256 timestamp);
     event CertificationValidation(bytes32 indexed passportId, string issuer, uint256 date, string certificateId);
+
+    event BatteryLogRecorded(
+        uint256 indexed logId,
+        bytes32 indexed passportId,
+        address indexed recorder,
+        uint256 stateOfCharge,
+        uint256 stateOfHealth,
+        int256 temperature,
+        uint256 voltage,
+        uint256 cycleCount,
+        ChargingStatus chargingStatus,
+        uint256 timestamp
+    );
+
+    event ChargingSessionStarted(
+        uint256 indexed sessionId,
+        bytes32 indexed passportId,
+        address indexed initiator,
+        string chargerId,
+        string location,
+        uint256 timestamp
+    );
+
+    event ChargingSessionCompleted(
+        uint256 indexed sessionId,
+        bytes32 indexed passportId,
+        address indexed closer,
+        uint256 energyKWh,
+        uint256 cost,
+        uint256 durationMinutes,
+        uint256 timestamp
+    );
+
+    event ChargingSessionCancelled(
+        uint256 indexed sessionId,
+        bytes32 indexed passportId,
+        address indexed cancelledBy,
+        uint256 timestamp
+    );
+
+    event OwnershipTransferInitiated(
+        uint256 indexed requestId,
+        bytes32 indexed passportId,
+        address indexed currentOwner,
+        address proposedOwner,
+        uint256 price,
+        uint256 timestamp
+    );
+
+    event OwnershipTransferResolved(
+        uint256 indexed requestId,
+        bytes32 indexed passportId,
+        address indexed resolver,
+        TransferStatus status,
+        uint256 timestamp
+    );
+
+    event ExternalVehicleLinkUpdated(
+        bytes32 indexed passportId,
+        bytes32 indexed vehicleIdHash,
+        address indexed updater,
+        uint256 timestamp
+    );
 
     // -------------------- Constructor --------------------
     constructor() EIP712("BatteryLifecycleTracker", "1") {
@@ -339,6 +487,82 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         updateTelemetry(passportId, _stateOfCharge, _stateOfHealth, _temperature, _cycleCount);
     }
 
+    function recordBatteryLog(
+        bytes32 _passportId,
+        uint256 _stateOfCharge,
+        uint256 _stateOfHealth,
+        int256 _temperature,
+        uint256 _cycleCount,
+        uint256 _voltage,
+        ChargingStatus _chargingStatus
+    ) external nonReentrant {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        _requireTelemetryActor(_passportId, msg.sender);
+
+        _batteryLogIdCounter++;
+        uint256 logId = _batteryLogIdCounter;
+
+        BatteryLogEntry storage entry = batteryLogs[logId];
+        entry.logId = logId;
+        entry.passportId = _passportId;
+        entry.stateOfCharge = _stateOfCharge;
+        entry.stateOfHealth = _stateOfHealth;
+        entry.temperature = _temperature;
+        entry.voltage = _voltage;
+        entry.cycleCount = _cycleCount;
+        entry.chargingStatus = _chargingStatus;
+        entry.timestamp = block.timestamp;
+        entry.recorder = msg.sender;
+
+        passportToBatteryLogs[_passportId].push(logId);
+
+        _applyTelemetryUpdateDetailed(
+            _passportId,
+            _stateOfCharge,
+            _stateOfHealth,
+            _temperature,
+            _cycleCount,
+            _voltage,
+            _chargingStatus,
+            msg.sender
+        );
+
+        bytes32 dataHash = keccak256(
+            abi.encodePacked(
+                _passportId,
+                logId,
+                _stateOfCharge,
+                _stateOfHealth,
+                _temperature,
+                _voltage,
+                _cycleCount,
+                uint256(_chargingStatus),
+                block.timestamp
+            )
+        );
+
+        _recordLifecycleEvent(
+            _passportId,
+            EventType.TelemetryLog,
+            "Battery telemetry snapshot recorded",
+            dataHash,
+            msg.sender
+        );
+
+        emit BatteryLogRecorded(
+            logId,
+            _passportId,
+            msg.sender,
+            _stateOfCharge,
+            _stateOfHealth,
+            _temperature,
+            _voltage,
+            _cycleCount,
+            _chargingStatus,
+            block.timestamp
+        );
+    }
+
     /**
      * @dev Transfer ownership of a battery
      */
@@ -350,21 +574,16 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         require(battery.metadata.isActive, "Battery passport inactive");
         require(battery.currentOwner == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized");
 
-        address previousOwner = battery.currentOwner;
-        battery.currentOwner = _newOwner;
+        address previousOwner = _assignPassportOwner(_passportId, _newOwner);
+        delete pendingTransferRequestByPassport[_passportId];
 
-        _removeFromOwnerList(previousOwner, _passportId);
-        ownerToPassports[_newOwner].add(_passportId);
-
-        _recordLifecycleEvent(
+        _finalizeOwnershipTransfer(
             _passportId,
-            EventType.OwnershipTransfer,
-            "Ownership transferred",
-            keccak256(abi.encodePacked(_passportId, previousOwner, _newOwner, block.timestamp)),
-            msg.sender
+            previousOwner,
+            _newOwner,
+            msg.sender,
+            "Ownership transferred"
         );
-
-        emit OwnershipTransferred(_passportId, previousOwner, _newOwner, block.timestamp);
     }
 
     /**
@@ -374,6 +593,145 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         bytes32 passportId = legacyIdToPassportId[_batteryId];
         require(passportId != bytes32(0), "Legacy batteryId not found");
         transferOwnership(passportId, _newOwner);
+    }
+
+    function initiateOwnershipTransfer(
+        bytes32 _passportId,
+        address _proposedOwner,
+        uint256 _price,
+        string calldata _notes
+    ) external nonReentrant returns (uint256) {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        require(_proposedOwner != address(0), "Invalid proposed owner");
+
+        Battery storage battery = batteries[_passportId];
+        require(battery.metadata.isActive, "Battery passport inactive");
+        require(battery.currentOwner == msg.sender, "Only current owner can initiate");
+        require(pendingTransferRequestByPassport[_passportId] == 0, "Transfer already pending");
+
+        _ownershipTransferCounter++;
+        uint256 requestId = _ownershipTransferCounter;
+
+        OwnershipTransferRequest storage request = ownershipTransferRequests[requestId];
+        request.requestId = requestId;
+        request.passportId = _passportId;
+        request.currentOwner = msg.sender;
+        request.proposedOwner = _proposedOwner;
+        request.price = _price;
+        request.notes = _notes;
+        request.initiatedAt = block.timestamp;
+        request.status = TransferStatus.Pending;
+
+        pendingTransferRequestByPassport[_passportId] = requestId;
+        passportToTransferRequests[_passportId].push(requestId);
+
+        bytes32 dataHash = keccak256(
+            abi.encodePacked(_passportId, requestId, msg.sender, _proposedOwner, _price, block.timestamp)
+        );
+
+        _recordLifecycleEvent(
+            _passportId,
+            EventType.OwnershipTransfer,
+            "Ownership transfer initiated",
+            dataHash,
+            msg.sender
+        );
+
+        emit OwnershipTransferInitiated(requestId, _passportId, msg.sender, _proposedOwner, _price, block.timestamp);
+
+        return requestId;
+    }
+
+    function respondToOwnershipTransfer(uint256 _requestId, bool _approved) external nonReentrant {
+        OwnershipTransferRequest storage request = ownershipTransferRequests[_requestId];
+        require(request.requestId != 0, "Transfer request not found");
+        require(request.status == TransferStatus.Pending, "Transfer already resolved");
+
+        bool isAdmin = hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        require(msg.sender == request.proposedOwner || isAdmin, "Not authorized to respond");
+
+        request.resolvedAt = block.timestamp;
+
+        if (_approved) {
+            request.status = TransferStatus.Approved;
+            address previousOwner = _assignPassportOwner(request.passportId, request.proposedOwner);
+            delete pendingTransferRequestByPassport[request.passportId];
+
+            _finalizeOwnershipTransfer(
+                request.passportId,
+                previousOwner,
+                request.proposedOwner,
+                msg.sender,
+                "Ownership transfer approved"
+            );
+        } else {
+            request.status = TransferStatus.Rejected;
+            delete pendingTransferRequestByPassport[request.passportId];
+
+            bytes32 dataHash = keccak256(
+                abi.encodePacked(request.passportId, _requestId, "rejected", block.timestamp)
+            );
+
+            _recordLifecycleEvent(
+                request.passportId,
+                EventType.OwnershipTransfer,
+                "Ownership transfer rejected",
+                dataHash,
+                msg.sender
+            );
+
+            emit OwnershipTransferResolved(
+                _requestId,
+                request.passportId,
+                msg.sender,
+                TransferStatus.Rejected,
+                block.timestamp
+            );
+
+            return;
+        }
+
+        emit OwnershipTransferResolved(
+            _requestId,
+            request.passportId,
+            msg.sender,
+            request.status,
+            block.timestamp
+        );
+    }
+
+    function cancelOwnershipTransfer(uint256 _requestId) external nonReentrant {
+        OwnershipTransferRequest storage request = ownershipTransferRequests[_requestId];
+        require(request.requestId != 0, "Transfer request not found");
+        require(request.status == TransferStatus.Pending, "Transfer already resolved");
+        require(
+            request.currentOwner == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "Not authorized to cancel"
+        );
+
+        request.status = TransferStatus.Cancelled;
+        request.resolvedAt = block.timestamp;
+        delete pendingTransferRequestByPassport[request.passportId];
+
+        bytes32 dataHash = keccak256(
+            abi.encodePacked(request.passportId, _requestId, "cancelled", block.timestamp)
+        );
+
+        _recordLifecycleEvent(
+            request.passportId,
+            EventType.OwnershipTransfer,
+            "Ownership transfer cancelled",
+            dataHash,
+            msg.sender
+        );
+
+        emit OwnershipTransferResolved(
+            _requestId,
+            request.passportId,
+            msg.sender,
+            TransferStatus.Cancelled,
+            block.timestamp
+        );
     }
 
     /**
@@ -507,6 +865,131 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         );
     }
 
+    function startChargingSession(
+        bytes32 _passportId,
+        string calldata _chargerId,
+        string calldata _location
+    ) external nonReentrant returns (uint256) {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        _requirePassportOwnerOrAdmin(_passportId, msg.sender);
+        require(bytes(_chargerId).length > 0, "Charger ID required");
+        require(bytes(_location).length > 0, "Location required");
+
+        require(activeChargingSessionByPassport[_passportId] == 0, "Active charging session in progress");
+
+        _chargingSessionCounter++;
+        uint256 sessionId = _chargingSessionCounter;
+
+        ChargingSession storage session = chargingSessions[sessionId];
+        session.sessionId = sessionId;
+        session.passportId = _passportId;
+        session.chargerId = _chargerId;
+        session.location = _location;
+        session.startedAt = block.timestamp;
+        session.initiatedBy = msg.sender;
+        session.status = ChargingSessionStatus.Active;
+
+        activeChargingSessionByPassport[_passportId] = sessionId;
+        passportToChargingSessions[_passportId].push(sessionId);
+
+        bytes32 dataHash = keccak256(
+            abi.encodePacked(_passportId, sessionId, _chargerId, _location, msg.sender, block.timestamp)
+        );
+
+        _recordLifecycleEvent(
+            _passportId,
+            EventType.ChargingSession,
+            "Charging session started",
+            dataHash,
+            msg.sender
+        );
+
+        emit ChargingSessionStarted(sessionId, _passportId, msg.sender, _chargerId, _location, block.timestamp);
+
+        return sessionId;
+    }
+
+    function completeChargingSession(
+        uint256 _sessionId,
+        uint256 _energyKWh,
+        uint256 _cost
+    ) external nonReentrant {
+        ChargingSession storage session = chargingSessions[_sessionId];
+        require(session.sessionId != 0, "Charging session not found");
+        require(session.status == ChargingSessionStatus.Active, "Charging session not active");
+
+        _requirePassportOwnerOrAdmin(session.passportId, msg.sender);
+
+        session.endedAt = block.timestamp;
+        session.energyKWh = _energyKWh;
+        session.cost = _cost;
+        session.durationMinutes = (session.endedAt - session.startedAt) / 60;
+        session.status = ChargingSessionStatus.Completed;
+        session.completedBy = msg.sender;
+
+        delete activeChargingSessionByPassport[session.passportId];
+
+        bytes32 dataHash = keccak256(
+            abi.encodePacked(
+                session.passportId,
+                _sessionId,
+                _energyKWh,
+                _cost,
+                session.durationMinutes,
+                session.endedAt
+            )
+        );
+
+        _recordLifecycleEvent(
+            session.passportId,
+            EventType.ChargingSession,
+            "Charging session completed",
+            dataHash,
+            msg.sender
+        );
+
+        emit ChargingSessionCompleted(
+            _sessionId,
+            session.passportId,
+            msg.sender,
+            _energyKWh,
+            _cost,
+            session.durationMinutes,
+            session.endedAt
+        );
+    }
+
+    function cancelChargingSession(uint256 _sessionId) external nonReentrant {
+        ChargingSession storage session = chargingSessions[_sessionId];
+        require(session.sessionId != 0, "Charging session not found");
+        require(session.status == ChargingSessionStatus.Active, "Charging session not active");
+
+        require(
+            session.initiatedBy == msg.sender || _isPassportOwnerOrAdmin(session.passportId, msg.sender),
+            "Not authorized"
+        );
+
+        session.status = ChargingSessionStatus.Cancelled;
+        session.endedAt = block.timestamp;
+        session.completedBy = msg.sender;
+
+        delete activeChargingSessionByPassport[session.passportId];
+
+        bytes32 dataHash = keccak256(
+            abi.encodePacked(session.passportId, _sessionId, "cancelled", block.timestamp)
+        );
+
+        _recordLifecycleEvent(
+            session.passportId,
+            EventType.ChargingSession,
+            "Charging session cancelled",
+            dataHash,
+            msg.sender
+        );
+
+        emit ChargingSessionCancelled(_sessionId, session.passportId, msg.sender, block.timestamp);
+    }
+
     // -------------------- Additional Data helpers --------------------
 
     function setAdditionalData(bytes32 _passportId, string calldata key, string calldata value) public {
@@ -537,6 +1020,22 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         return getAdditionalData(passportId, key);
     }
 
+    function linkExternalVehicleId(bytes32 _passportId, bytes32 _externalVehicleIdHash) external {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        require(_externalVehicleIdHash != bytes32(0), "Vehicle identifier required");
+        _requireAnyRole(msg.sender, DEFAULT_ADMIN_ROLE, MANUFACTURER_ROLE, AUDITOR_ROLE);
+
+        bytes32 currentHash = passportToExternalVehicleHash[_passportId];
+        if (currentHash != bytes32(0)) {
+            delete externalVehicleHashToPassport[currentHash];
+        }
+
+        passportToExternalVehicleHash[_passportId] = _externalVehicleIdHash;
+        externalVehicleHashToPassport[_externalVehicleIdHash] = _passportId;
+
+        emit ExternalVehicleLinkUpdated(_passportId, _externalVehicleIdHash, msg.sender, block.timestamp);
+    }
+
     // -------------------- Internal --------------------
 
     function _applyTelemetryUpdate(
@@ -545,6 +1044,29 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         uint256 _stateOfHealth,
         int256 _temperature,
         uint256 _cycleCount,
+        address _initiator
+    ) internal {
+        Battery storage battery = batteries[_passportId];
+        _applyTelemetryUpdateDetailed(
+            _passportId,
+            _stateOfCharge,
+            _stateOfHealth,
+            _temperature,
+            _cycleCount,
+            battery.telemetry.voltage,
+            battery.telemetry.chargingStatus,
+            _initiator
+        );
+    }
+
+    function _applyTelemetryUpdateDetailed(
+        bytes32 _passportId,
+        uint256 _stateOfCharge,
+        uint256 _stateOfHealth,
+        int256 _temperature,
+        uint256 _cycleCount,
+        uint256 _voltage,
+        ChargingStatus _chargingStatus,
         address _initiator
     ) internal {
         require(_passportExists(_passportId), "Battery passport does not exist");
@@ -561,6 +1083,8 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         battery.telemetry.stateOfHealth = _stateOfHealth;
         battery.telemetry.temperature = _temperature;
         battery.telemetry.cycleCount = _cycleCount;
+        battery.telemetry.voltage = _voltage;
+        battery.telemetry.chargingStatus = _chargingStatus;
         battery.telemetry.lastUpdateTimestamp = block.timestamp;
 
         // thresholds are in Celsius*100
@@ -714,6 +1238,61 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
         return ownerToPassports[_owner].remove(_passportId);
     }
 
+    function _assignPassportOwner(bytes32 _passportId, address _newOwner) internal returns (address previousOwner) {
+        Battery storage battery = batteries[_passportId];
+        previousOwner = battery.currentOwner;
+
+        if (previousOwner != address(0)) {
+            _removeFromOwnerList(previousOwner, _passportId);
+        }
+
+        battery.currentOwner = _newOwner;
+
+        if (_newOwner != address(0)) {
+            ownerToPassports[_newOwner].add(_passportId);
+        }
+    }
+
+    function _finalizeOwnershipTransfer(
+        bytes32 _passportId,
+        address _previousOwner,
+        address _newOwner,
+        address _operator,
+        string memory _description
+    ) internal {
+        _recordLifecycleEvent(
+            _passportId,
+            EventType.OwnershipTransfer,
+            _description,
+            keccak256(abi.encodePacked(_passportId, _previousOwner, _newOwner, block.timestamp)),
+            _operator
+        );
+
+        emit OwnershipTransferred(_passportId, _previousOwner, _newOwner, block.timestamp);
+    }
+
+    function _requireTelemetryActor(bytes32 _passportId, address account) internal view {
+        Battery storage battery = batteries[_passportId];
+        bool authorized =
+            battery.currentOwner == account ||
+            hasRole(DEFAULT_ADMIN_ROLE, account) ||
+            hasRole(MANUFACTURER_ROLE, account) ||
+            hasRole(IOT_DEVICE_ROLE, account);
+        require(authorized, "Not authorized");
+    }
+
+    function _isPassportOwnerOrAdmin(bytes32 _passportId, address account) internal view returns (bool) {
+        Battery storage battery = batteries[_passportId];
+        if (battery.currentOwner == account) {
+            return true;
+        }
+        return hasRole(DEFAULT_ADMIN_ROLE, account);
+    }
+
+    function _requirePassportOwnerOrAdmin(bytes32 _passportId, address account) internal view {
+        require(_isPassportOwnerOrAdmin(_passportId, account), "Not authorized");
+    }
+
     // Legacy internal functions for backward compatibility
     function _batteryExists(uint256 _batteryId) internal view returns (bool) {
         bytes32 passportId = legacyIdToPassportId[_batteryId];
@@ -765,6 +1344,68 @@ contract BatteryLifecycleTracker is AccessControl, ReentrancyGuard, EIP712 {
 
     function getPassportBySerialNumber(string memory _serialNumber) external view returns (bytes32) {
         return serialNumberToPassportId[_serialNumber];
+    }
+
+    function getExternalVehicleIdHash(bytes32 _passportId) external view returns (bytes32) {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        return passportToExternalVehicleHash[_passportId];
+    }
+
+    function getPassportIdByExternalVehicleHash(bytes32 _vehicleIdHash) external view returns (bytes32) {
+        return externalVehicleHashToPassport[_vehicleIdHash];
+    }
+
+    function getBatteryLogIds(bytes32 _passportId) external view returns (uint256[] memory) {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        return passportToBatteryLogs[_passportId];
+    }
+
+    function getBatteryLog(uint256 _logId) external view returns (BatteryLogEntry memory) {
+        BatteryLogEntry storage entry = batteryLogs[_logId];
+        require(entry.logId != 0, "Battery log not found");
+        BatteryLogEntry memory entryData = entry;
+        return entryData;
+    }
+
+    function getChargingSessionIds(bytes32 _passportId) external view returns (uint256[] memory) {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        return passportToChargingSessions[_passportId];
+    }
+
+    function getChargingSession(uint256 _sessionId) external view returns (ChargingSession memory) {
+        ChargingSession storage session = chargingSessions[_sessionId];
+        require(session.sessionId != 0, "Charging session not found");
+        ChargingSession memory sessionData = session;
+        return sessionData;
+    }
+
+    function getActiveChargingSession(bytes32 _passportId) external view returns (uint256) {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        return activeChargingSessionByPassport[_passportId];
+    }
+
+    function getOwnershipTransferRequest(uint256 _requestId) external view returns (OwnershipTransferRequest memory) {
+        OwnershipTransferRequest storage request = ownershipTransferRequests[_requestId];
+        require(request.requestId != 0, "Transfer request not found");
+        OwnershipTransferRequest memory requestData = request;
+        return requestData;
+    }
+
+    function getOwnershipTransferRequests(bytes32 _passportId) external view returns (uint256[] memory) {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        return passportToTransferRequests[_passportId];
+    }
+
+    function getPendingOwnershipTransfer(bytes32 _passportId) external view returns (OwnershipTransferRequest memory) {
+        require(_passportExists(_passportId), "Battery passport does not exist");
+        uint256 requestId = pendingTransferRequestByPassport[_passportId];
+        if (requestId == 0) {
+            OwnershipTransferRequest memory empty;
+            return empty;
+        }
+        OwnershipTransferRequest storage request = ownershipTransferRequests[requestId];
+        OwnershipTransferRequest memory requestData = request;
+        return requestData;
     }
 
     function getDeviceNonce(address device) external view returns (uint256) {

@@ -56,21 +56,20 @@ export interface Theme {
   };
 }
 
-// Brand A Theme (Emerald Green)
 export const brandATheme: Theme = {
   colors: {
-    primary: '#10B981', // Emerald Green
-    secondary: '#059669', // Teal Green
-    accent: '#34D399', // Light Green
-    background: '#F0FDF4', // Very light green
-    surface: '#ECFDF5', // Light green
-    text: '#14532D', // Dark green
-    textSecondary: '#166534', // Medium green
-    border: '#BBF7D0', // Light green border
-    success: '#22C55E', // Green
-    warning: '#F59E0B', // Amber
-    error: '#EF4444', // Red
-    info: '#16A34A', // Forest Green
+    primary: '#38BDF8',
+    secondary: '#22C55E',
+    accent: '#8B5CF6',
+    background: '#030712',
+    surface: 'rgba(15,23,42,0.85)',
+    text: '#E2E8F0',
+    textSecondary: 'rgba(148,163,184,0.75)',
+    border: 'rgba(51,65,85,0.45)',
+    success: '#22C55E',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#38BDF8',
   },
   spacing: {
     xs: 4,
@@ -115,21 +114,20 @@ export const brandATheme: Theme = {
   },
 };
 
-// Brand B Theme (Deep Forest Green)
 export const brandBTheme: Theme = {
   colors: {
-    primary: '#16A34A', // Forest Green
-    secondary: '#15803D', // Dark Forest Green
-    accent: '#22C55E', // Bright Green
-    background: '#F7FEF8', // Very light green
-    surface: '#F0FDF4', // Light green
-    text: '#0F2419', // Very dark green
-    textSecondary: '#14532D', // Dark green
-    border: '#A7F3D0', // Light green border
-    success: '#22C55E', // Green
-    warning: '#F59E0B', // Amber
-    error: '#EF4444', // Red
-    info: '#059669', // Teal Green
+    primary: '#8B5CF6',
+    secondary: '#38BDF8',
+    accent: '#F97316',
+    background: '#030712',
+    surface: 'rgba(30,41,59,0.85)',
+    text: '#F8FAFC',
+    textSecondary: 'rgba(148,163,184,0.7)',
+    border: 'rgba(71,85,105,0.45)',
+    success: '#22C55E',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#7C3AED',
   },
   spacing: {
     xs: 4,

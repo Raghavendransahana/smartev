@@ -11,22 +11,20 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { flexiEVAPI, ChargingSession, Vehicle } from '../api/flexiEVApi';
+import { useAuth } from '../contexts/AuthContext';
+import { flexiEVAPI, ChargingSession, Vehicle, BatteryTelemetry } from '../api/flexiEVApi';
 
 const ChargingSessionsScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('');
   const [chargingSessions, setChargingSessions] = useState<ChargingSession[]>([]);
   const [activeSession, setActiveSession] = useState<ChargingSession | null>(null);
+  const [batteryData, setBatteryData] = useState<{[vehicleId: string]: BatteryTelemetry | null}>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showStartModal, setShowStartModal] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
-  const [newSession, setNewSession] = useState({
-    location: '',
-    chargerId: '',
-  });
   const [endSessionData, setEndSessionData] = useState({
     kwhDelivered: '',
     duration: '',
@@ -36,6 +34,12 @@ const ChargingSessionsScreen: React.FC = () => {
   useEffect(() => {
     loadVehicles();
   }, []);
+
+  useEffect(() => {
+    if (vehicles.length > 0) {
+      loadBatteryData();
+    }
+  }, [vehicles]);
 
   useEffect(() => {
     if (selectedVehicle) {
@@ -48,11 +52,32 @@ const ChargingSessionsScreen: React.FC = () => {
       const data = await flexiEVAPI.getVehicles();
       setVehicles(data);
       if (data.length > 0 && !selectedVehicle) {
-        setSelectedVehicle(data[0].id);
+        setSelectedVehicle(data[0]._id);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to load vehicles');
       console.error(error);
+    }
+  };
+
+  const loadBatteryData = async () => {
+    try {
+      const batteryDataMap: {[vehicleId: string]: BatteryTelemetry | null} = {};
+      
+      // Load battery data for all vehicles
+      for (const vehicle of vehicles) {
+        try {
+          const latestBattery = await flexiEVAPI.getLatestBatteryData(vehicle._id);
+          batteryDataMap[vehicle._id] = latestBattery;
+        } catch (error) {
+          console.log(`No battery data found for vehicle ${vehicle._id}`);
+          batteryDataMap[vehicle._id] = null;
+        }
+      }
+      
+      setBatteryData(batteryDataMap);
+    } catch (error) {
+      console.error('Error loading battery data:', error);
     }
   };
 
@@ -73,35 +98,15 @@ const ChargingSessionsScreen: React.FC = () => {
   };
 
   const handleRefresh = async () => {
-    if (!selectedVehicle) return;
     setRefreshing(true);
-    await loadChargingSessions();
+    await Promise.all([
+      loadBatteryData(),
+      selectedVehicle ? loadChargingSessions() : Promise.resolve()
+    ]);
     setRefreshing(false);
   };
 
-  const handleStartSession = async () => {
-    try {
-      if (!selectedVehicle) {
-        Alert.alert('Error', 'Please select a vehicle');
-        return;
-      }
 
-      if (!newSession.location || !newSession.chargerId) {
-        Alert.alert('Error', 'Please fill in all fields');
-        return;
-      }
-
-      const session = await flexiEVAPI.startChargingSession(selectedVehicle, newSession);
-      setActiveSession(session);
-      setChargingSessions([session, ...chargingSessions]);
-      setNewSession({ location: '', chargerId: '' });
-      setShowStartModal(false);
-      Alert.alert('Success', 'Charging session started');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to start charging session');
-      console.error(error);
-    }
-  };
 
   const handleEndSession = async () => {
     try {
@@ -111,8 +116,7 @@ const ChargingSessionsScreen: React.FC = () => {
       }
 
       const sessionData = {
-        kwhDelivered: parseFloat(endSessionData.kwhDelivered),
-        duration: parseInt(endSessionData.duration),
+        energyDelivered: parseFloat(endSessionData.kwhDelivered),
         cost: parseFloat(endSessionData.cost),
       };
 
@@ -146,6 +150,104 @@ const ChargingSessionsScreen: React.FC = () => {
   const getSessionStatusColor = (session: ChargingSession) => {
     return session.endTime ? '#22c55e' : '#f59e0b';
   };
+
+  const getBatteryLevelColor = (level: number) => {
+    if (level > 80) return '#22c55e';
+    if (level > 20) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  const getBatteryHealthColor = (health: number) => {
+    if (health > 80) return '#22c55e';
+    if (health > 60) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  const BatteryStatusCard = ({ vehicle, battery }: { vehicle: Vehicle, battery: BatteryTelemetry | null }) => (
+    <View style={[styles.batteryCard, { backgroundColor: theme.colors.surface }]}>
+      <View style={styles.batteryHeader}>
+        <Text style={[styles.vehicleName, { color: theme.colors.text }]}>
+          {vehicle.brand} {vehicle.vehicleModel}
+        </Text>
+        <Text style={[styles.vehicleVin, { color: theme.colors.textSecondary }]}>
+          VIN: {vehicle.vin}
+        </Text>
+      </View>
+      
+      {battery ? (
+        <View style={styles.batteryStats}>
+          <View style={styles.batteryRow}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
+                Battery Level
+              </Text>
+              <Text style={[styles.statValue, { color: getBatteryLevelColor(battery.batteryLevel) }]}>
+                {battery.batteryLevel}%
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
+                Health
+              </Text>
+              <Text style={[styles.statValue, { color: getBatteryHealthColor(battery.health) }]}>
+                {battery.health}%
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.batteryRow}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
+                Temperature
+              </Text>
+              <Text style={[styles.statValue, { color: theme.colors.text }]}>
+                {battery.temperature}°C
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>
+                Cycle Count
+              </Text>
+              <Text style={[styles.statValue, { color: theme.colors.text }]}>
+                {battery.cycleCount}
+              </Text>
+            </View>
+          </View>
+          
+          <Text style={[styles.lastUpdate, { color: theme.colors.textSecondary }]}>
+            Last updated: {new Date(battery.createdAt).toLocaleString()}
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.noBatteryData}>
+          <Text style={[styles.noBatteryText, { color: theme.colors.textSecondary }]}>
+            No battery data available
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+
+  const BatteryStatusSection = () => (
+    <View style={styles.batterySection}>
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+        Battery Status
+      </Text>
+      {vehicles.length > 0 ? (
+        vehicles.map(vehicle => (
+          <BatteryStatusCard
+            key={vehicle._id}
+            vehicle={vehicle}
+            battery={batteryData[vehicle._id] || null}
+          />
+        ))
+      ) : (
+        <Text style={[styles.noDataText, { color: theme.colors.textSecondary }]}>
+          No vehicles found
+        </Text>
+      )}
+    </View>
+  );
 
   const ChargingSessionCard = ({ item }: { item: ChargingSession }) => (
     <View style={[styles.sessionCard, { backgroundColor: theme.colors.surface }]}>
@@ -185,7 +287,7 @@ const ChargingSessionsScreen: React.FC = () => {
                 Energy
               </Text>
               <Text style={[styles.statValue, { color: theme.colors.text }]}>
-                {item.kwhDelivered} kWh
+                {item.energyDelivered || 0} kWh
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -193,7 +295,7 @@ const ChargingSessionsScreen: React.FC = () => {
                 Duration
               </Text>
               <Text style={[styles.statValue, { color: theme.colors.text }]}>
-                {item.duration ? formatDuration(item.duration) : 'N/A'}
+                {item.endTime ? formatDuration(Math.floor((new Date(item.endTime).getTime() - new Date(item.startTime).getTime()) / 60000)) : 'N/A'}
               </Text>
             </View>
             <View style={styles.statItem}>
@@ -207,11 +309,7 @@ const ChargingSessionsScreen: React.FC = () => {
           </View>
         )}
 
-        {item.blockchainTxId && (
-          <Text style={[styles.txId, { color: theme.colors.primary }]}>
-            Blockchain TX: {item.blockchainTxId.substring(0, 16)}...
-          </Text>
-        )}
+
       </View>
     </View>
   );
@@ -238,48 +336,7 @@ const ChargingSessionsScreen: React.FC = () => {
     );
   };
 
-  const StartSessionModal = () => (
-    <Modal visible={showStartModal} animationType="slide" transparent>
-      <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
-          <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-            Start Charging Session
-          </Text>
-          
-          <TextInput
-            style={[styles.input, { backgroundColor: theme.colors.background, color: theme.colors.text }]}
-            placeholder="Location"
-            placeholderTextColor={theme.colors.textSecondary}
-            value={newSession.location}
-            onChangeText={(text) => setNewSession({ ...newSession, location: text })}
-          />
-          
-          <TextInput
-            style={[styles.input, { backgroundColor: theme.colors.background, color: theme.colors.text }]}
-            placeholder="Charger ID"
-            placeholderTextColor={theme.colors.textSecondary}
-            value={newSession.chargerId}
-            onChangeText={(text) => setNewSession({ ...newSession, chargerId: text })}
-          />
-          
-          <View style={styles.modalButtons}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={() => setShowStartModal(false)}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: theme.colors.primary }]}
-              onPress={handleStartSession}
-            >
-              <Text style={styles.buttonText}>Start Session</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
+
 
   const EndSessionModal = () => (
     <Modal visible={showEndModal} animationType="slide" transparent>
@@ -341,18 +398,6 @@ const ChargingSessionsScreen: React.FC = () => {
         <Text style={[styles.title, { color: theme.colors.text }]}>
           Charging Sessions
         </Text>
-        <TouchableOpacity
-          style={[
-            styles.startButton,
-            { backgroundColor: activeSession ? '#666' : theme.colors.primary }
-          ]}
-          onPress={() => setShowStartModal(true)}
-          disabled={!!activeSession || !selectedVehicle}
-        >
-          <Text style={styles.buttonText}>
-            {activeSession ? 'Session Active' : '+ Start Session'}
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.vehicleSelector}>
@@ -360,23 +405,25 @@ const ChargingSessionsScreen: React.FC = () => {
         <View style={styles.vehicleButtons}>
           {vehicles.map((vehicle) => (
             <TouchableOpacity
-              key={vehicle.id}
+              key={vehicle._id}
               style={[
                 styles.vehicleButton,
-                selectedVehicle === vehicle.id && { backgroundColor: theme.colors.primary },
+                selectedVehicle === vehicle._id && { backgroundColor: theme.colors.primary },
               ]}
-              onPress={() => setSelectedVehicle(vehicle.id)}
+              onPress={() => setSelectedVehicle(vehicle._id)}
             >
               <Text style={[
                 styles.vehicleButtonText,
-                selectedVehicle === vehicle.id ? { color: 'white' } : { color: theme.colors.text }
+                selectedVehicle === vehicle._id ? { color: 'white' } : { color: theme.colors.text }
               ]}>
-                {vehicle.brand} {vehicle.model}
+                {vehicle.brand} {vehicle.vehicleModel}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
+
+      <BatteryStatusSection />
 
       {loading ? (
         <View style={styles.centerContent}>
@@ -391,7 +438,7 @@ const ChargingSessionsScreen: React.FC = () => {
           
           <FlatList
             data={chargingSessions}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             renderItem={({ item }) => <ChargingSessionCard item={item} />}
             style={styles.sessionsList}
             refreshing={refreshing}
@@ -407,7 +454,6 @@ const ChargingSessionsScreen: React.FC = () => {
         </>
       )}
 
-      <StartSessionModal />
       <EndSessionModal />
     </View>
   );
@@ -427,11 +473,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-  },
-  startButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
   },
   buttonText: {
     color: 'white',
@@ -614,6 +655,67 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: '#666',
+  },
+  // Battery Status Styles
+  batterySection: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  batteryCard: {
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  batteryHeader: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingBottom: 8,
+    marginBottom: 12,
+  },
+  vehicleName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  vehicleVin: {
+    fontSize: 12,
+    fontFamily: 'monospace',
+  },
+  batteryStats: {
+    gap: 12,
+  },
+  batteryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  lastUpdate: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  noBatteryData: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  noBatteryText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  noDataText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 10,
   },
 });
 

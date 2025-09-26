@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,17 +6,22 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Alert,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
-type MoreScreenNavigationProp = StackNavigationProp<RootStackParamList>;
+type MoreScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const { width } = Dimensions.get('window');
-const cardWidth = (width - 48) / 2; // 2 cards per row with margins
+const isSmallScreen = width < 400;
+const cardWidth = isSmallScreen ? width - 32 : (width - 48) / 2; // Single column on small screens
 
 interface FeatureCard {
   title: string;
@@ -56,6 +61,13 @@ const features: FeatureCard[] = [
     color: '#22C55E', // Bright Green
   },
   {
+    title: 'Integration Status',
+    subtitle: 'Backend connectivity',
+    icon: 'link',
+    screen: 'IntegrationStatus',
+    color: '#059669', // Teal
+  },
+  {
     title: 'Blockchain Ledger',
     subtitle: 'Transaction ledger',
     icon: 'receipt',
@@ -73,7 +85,39 @@ const features: FeatureCard[] = [
 
 const MoreScreen: React.FC = () => {
   const { theme } = useTheme();
+  const { user, logout, isLoading } = useAuth();
   const navigation = useNavigation<MoreScreenNavigationProp>();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoggingOut(true);
+              console.log('MoreScreen - Starting logout process...');
+              await logout();
+              console.log('MoreScreen - Logout completed successfully');
+              // Small delay to ensure logout is processed before navigation
+              await new Promise(resolve => setTimeout(resolve, 100));
+              // The AuthContext will handle the navigation automatically
+            } catch (error) {
+              console.error('MoreScreen - Logout error:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            } finally {
+              setLoggingOut(false);
+            }
+          }
+        },
+      ]
+    );
+  };
 
   const renderFeatureCard = (feature: FeatureCard) => (
     <TouchableOpacity
@@ -82,7 +126,8 @@ const MoreScreen: React.FC = () => {
         styles.featureCard,
         { 
           backgroundColor: theme.colors.surface,
-          width: cardWidth,
+          width: isSmallScreen ? '100%' : cardWidth,
+          marginBottom: 12,
         },
       ]}
       onPress={() => navigation.navigate(feature.screen as keyof RootStackParamList)}
@@ -114,6 +159,40 @@ const MoreScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* User Profile Section */}
+        <View style={[styles.profileCard, { backgroundColor: theme.colors.surface }]}>
+          <View style={styles.profileHeader}>
+            <View style={[styles.profileIcon, { backgroundColor: theme.colors.primary }]}>
+              <Ionicons name="person" size={isSmallScreen ? 28 : 32} color="white" />
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={[styles.profileName, { color: theme.colors.text, fontSize: isSmallScreen ? 16 : 18 }]}>
+                {user?.profile ? `${user.profile.firstName} ${user.profile.lastName}` : 'Loading...'}
+              </Text>
+              <Text style={[styles.profileEmail, { color: theme.colors.textSecondary, fontSize: isSmallScreen ? 13 : 14 }]} numberOfLines={1} ellipsizeMode="tail">
+                {user?.email || ''}
+              </Text>
+              <Text style={[styles.profileRole, { color: theme.colors.primary, fontSize: isSmallScreen ? 11 : 12 }]}>
+                {user?.role?.toUpperCase() || ''}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity 
+            style={[styles.logoutButton, { backgroundColor: '#ef4444', paddingVertical: isSmallScreen ? 10 : 12 }]}
+            onPress={handleLogout}
+            disabled={loggingOut}
+          >
+            {loggingOut ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              <>
+                <Ionicons name="log-out-outline" size={18} color="white" />
+                <Text style={[styles.logoutText, { fontSize: isSmallScreen ? 14 : 16 }]}>Logout</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+
         {/* Header Section */}
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: theme.colors.text }]}>
@@ -157,43 +236,43 @@ const MoreScreen: React.FC = () => {
 
         {/* Features Grid */}
         <View style={styles.featuresContainer}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: isSmallScreen ? 18 : 20 }]}>
             Advanced Features
           </Text>
           
-          <View style={styles.featuresGrid}>
+          <View style={[styles.featuresGrid, { flexDirection: isSmallScreen ? 'column' : 'row' }]}>
             {features.map(renderFeatureCard)}
           </View>
         </View>
 
         {/* Quick Actions */}
         <View style={styles.quickActionsContainer}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text, fontSize: isSmallScreen ? 18 : 20 }]}>
             Quick Actions
           </Text>
           
           <TouchableOpacity
-            style={[styles.quickActionButton, { backgroundColor: theme.colors.primary }]}
+            style={[styles.quickActionButton, { backgroundColor: theme.colors.primary, paddingVertical: isSmallScreen ? 14 : 16 }]}
             onPress={() => navigation.navigate('VehicleManagement')}
           >
-            <Ionicons name="add-circle" size={24} color="white" />
-            <Text style={styles.quickActionText}>Add New Vehicle</Text>
+            <Ionicons name="add-circle" size={isSmallScreen ? 20 : 24} color="white" />
+            <Text style={[styles.quickActionText, { fontSize: isSmallScreen ? 14 : 16 }]}>Add New Vehicle</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.quickActionButton, { backgroundColor: '#10B981' }]}
+            style={[styles.quickActionButton, { backgroundColor: '#10B981', paddingVertical: isSmallScreen ? 14 : 16 }]}
             onPress={() => navigation.navigate('ChargingSessions')}
           >
-            <Ionicons name="flash" size={24} color="white" />
-            <Text style={styles.quickActionText}>Start Charging Session</Text>
+            <Ionicons name="flash" size={isSmallScreen ? 20 : 24} color="white" />
+            <Text style={[styles.quickActionText, { fontSize: isSmallScreen ? 14 : 16 }]}>View Charging Sessions</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.quickActionButton, { backgroundColor: '#F59E0B' }]}
+            style={[styles.quickActionButton, { backgroundColor: '#F59E0B', paddingVertical: isSmallScreen ? 14 : 16 }]}
             onPress={() => navigation.navigate('FleetManagement')}
           >
-            <Ionicons name="warning" size={24} color="white" />
-            <Text style={styles.quickActionText}>View Fleet Alerts</Text>
+            <Ionicons name="warning" size={isSmallScreen ? 20 : 24} color="white" />
+            <Text style={[styles.quickActionText, { fontSize: isSmallScreen ? 14 : 16 }]}>View Fleet Alerts</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -209,31 +288,35 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   header: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: width < 400 ? 24 : 28,
     fontWeight: 'bold',
     marginBottom: 8,
+    textAlign: 'center',
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: width < 400 ? 14 : 16,
     textAlign: 'center',
     lineHeight: 22,
+    paddingHorizontal: 20,
   },
   statsContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
     marginBottom: 24,
     borderRadius: 12,
-    padding: 20,
+    padding: width < 400 ? 16 : 20,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-  },
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
+  } as any,
   statItem: {
     flex: 1,
     alignItems: 'center',
@@ -270,7 +353,7 @@ const styles = StyleSheet.create({
   },
   featureCard: {
     borderRadius: 12,
-    padding: 16,
+    padding: width < 400 ? 12 : 16,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -279,26 +362,28 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-  },
+    minHeight: width < 400 ? 70 : 80,
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
+  } as any,
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: width < 400 ? 40 : 48,
+    height: width < 400 ? 40 : 48,
+    borderRadius: width < 400 ? 20 : 24,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: width < 400 ? 10 : 12,
   },
   cardContent: {
     flex: 1,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: width < 400 ? 14 : 16,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   cardSubtitle: {
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: width < 400 ? 12 : 14,
+    lineHeight: width < 400 ? 16 : 18,
   },
   chevron: {
     marginLeft: 8,
@@ -319,12 +404,69 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-  },
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
+  } as any,
   quickActionText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 12,
+  },
+  profileCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: width < 400 ? 16 : 20,
+    marginBottom: 24,
+    marginHorizontal: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
+  } as any,
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  profileIcon: {
+    width: width < 400 ? 50 : 60,
+    height: width < 400 ? 50 : 60,
+    borderRadius: width < 400 ? 25 : 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: width < 400 ? 12 : 16,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  profileRole: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    gap: 8,
+  },
+  logoutText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

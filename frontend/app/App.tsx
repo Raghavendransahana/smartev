@@ -6,18 +6,18 @@ import 'react-native-gesture-handler';
 
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/contexts/ThemeContext';
-import { VehicleProvider } from './src/contexts/VehicleContext';
+import { AuthProvider } from './src/contexts/AuthContext';
 
 export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <VehicleProvider>
+        <AuthProvider>
           <NavigationContainer>
             <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
             <AppNavigator />
           </NavigationContainer>
-        </VehicleProvider>
+        </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

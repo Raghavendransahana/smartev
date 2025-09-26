@@ -1,90 +1,117 @@
-const BASE_URL = 'http://localhost:4000/api'; // Replace with actual API URL
+const BASE_URL = 'http://192.168.137.103:4000/api'; // Backend API URL
 
-// Types for API responses
+// Types for API responses (updated to match backend schema)
 export interface Vehicle {
-  id: string;
+  _id: string;
   brand: string;
-  model: string;
+  vehicleModel: string;
   vin: string;
   owner: string;
-  registrationDate: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BatteryTelemetry {
-  id: string;
+  _id: string;
   vehicleId: string;
-  soc: number; // State of Charge
-  soh: number; // State of Health
+  batteryLevel: number; // State of Charge (0-100)
+  voltage: number;
   temperature: number;
   cycleCount: number;
+  health: number; // State of Health (0-100)
   timestamp: string;
-  blockchainTxId?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ChargingSession {
-  id: string;
+  _id: string;
   vehicleId: string;
   startTime: string;
   endTime?: string;
   location: string;
   chargerId: string;
-  kwhDelivered?: number;
-  duration?: number;
+  energyDelivered?: number;
   cost?: number;
-  blockchainTxId?: string;
+  status: 'started' | 'completed' | 'interrupted';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface OwnershipTransfer {
-  id: string;
+  _id: string;
   vehicleId: string;
-  oldOwner: string;
+  currentOwner: string;
   newOwner: string;
-  transferDate: string;
-  blockchainTxId: string;
+  transferPrice?: number;
+  notes?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  initiatedAt: string;
+  approvedAt?: string;
 }
 
 export interface BlockchainTransaction {
-  txId: string;
-  type: 'battery' | 'charging' | 'ownership';
-  vehicleId: string;
-  data: any;
+  _id: string;
+  type: 'battery' | 'charging' | 'ownership' | 'alert' | 'oem';
+  vehicleId?: string;
+  payload: any;
+  transactionHash: string;
+  status: 'pending' | 'confirmed' | 'failed';
+  createdAt: string;
   timestamp: string;
   blockNumber: number;
   gasUsed: number;
 }
 
 export interface User {
-  id: string;
+  _id: string;
   email: string;
-  role: 'owner' | 'oem' | 'regulator' | 'service_provider';
-  name: string;
+  role: 'owner' | 'oem' | 'regulator' | 'service_provider' | 'admin';
+  profile: {
+    firstName: string;
+    lastName: string;
+    phoneNumber?: string;
+    address?: string;
+  };
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface SystemInfo {
   version: string;
-  supportedBrands: string[];
-  blockchainStatus: 'active' | 'maintenance' | 'offline';
-  totalVehicles: number;
-  totalTransactions: number;
+  uptime: number;
+  environment: string;
+  database: {
+    status: string;
+    name: string;
+  };
+  memory: {
+    used: number;
+    total: number;
+  };
+  timestamp: string;
 }
 
 export interface FleetSummary {
   totalVehicles: number;
   activeVehicles: number;
-  averageBatteryHealth: number;
   totalChargingSessions: number;
-  alerts: number;
+  totalEnergyDelivered: number;
+  totalAlerts: number;
+  recentTransactions: number;
 }
 
 export interface Alert {
-  id: string;
+  _id: string;
   vehicleId: string;
-  type: 'battery_degradation' | 'abnormal_charging' | 'maintenance_required';
+  type: 'maintenance' | 'battery' | 'charging' | 'security';
   severity: 'low' | 'medium' | 'high' | 'critical';
   message: string;
-  timestamp: string;
-  resolved: boolean;
+  data?: any;
+  status: 'active' | 'acknowledged' | 'resolved';
+  createdAt: string;
+  resolvedAt?: string;
 }
 
 export interface Analytics {
@@ -146,7 +173,7 @@ class FlexiEVAPI {
   }
 
   // 2. Vehicle Management
-  async registerVehicle(vehicle: Omit<Vehicle, 'id' | 'registrationDate'>): Promise<Vehicle> {
+  async registerVehicle(vehicle: { brand: string; vehicleModel: string; vin: string }): Promise<Vehicle> {
     return this.request('/vehicles', {
       method: 'POST',
       body: JSON.stringify(vehicle),
@@ -162,23 +189,37 @@ class FlexiEVAPI {
     return this.request(`/vehicles${query}`);
   }
 
+  async updateVehicle(id: string, vehicle: Partial<Vehicle>): Promise<Vehicle> {
+    return this.request(`/vehicles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(vehicle),
+    });
+  }
+
+  async deleteVehicle(id: string): Promise<void> {
+    return this.request(`/vehicles/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // 3. Battery Management
   async logBatteryTelemetry(
     vehicleId: string,
-    telemetry: Omit<BatteryTelemetry, 'id' | 'vehicleId' | 'timestamp' | 'blockchainTxId'>
+    telemetry: { batteryLevel: number; voltage: number; temperature: number; cycleCount: number; health: number }
   ): Promise<BatteryTelemetry> {
-    return this.request(`/batteries/${vehicleId}/log`, {
+    return this.request('/battery/log', {
       method: 'POST',
-      body: JSON.stringify(telemetry),
+      body: JSON.stringify({ ...telemetry, vehicleId }),
     });
   }
 
   async getBatteryHistory(vehicleId: string): Promise<BatteryTelemetry[]> {
-    return this.request(`/batteries/${vehicleId}/history`);
+    return this.request(`/battery/${vehicleId}/history`);
   }
 
   async getLatestBatteryData(vehicleId: string): Promise<BatteryTelemetry> {
-    return this.request(`/batteries/${vehicleId}/latest`);
+    const history = await this.getBatteryHistory(vehicleId);
+    return history[0] || null;
   }
 
   // 4. Charging Sessions
@@ -186,49 +227,61 @@ class FlexiEVAPI {
     vehicleId: string,
     session: { location: string; chargerId: string }
   ): Promise<ChargingSession> {
-    return this.request(`/charging/${vehicleId}/start`, {
+    return this.request('/charging/start', {
       method: 'POST',
-      body: JSON.stringify(session),
+      body: JSON.stringify({ ...session, vehicleId }),
     });
   }
 
   async endChargingSession(
-    vehicleId: string,
-    sessionData: { kwhDelivered: number; duration: number; cost: number }
+    sessionId: string,
+    sessionData: { energyDelivered: number; cost: number }
   ): Promise<ChargingSession> {
-    return this.request(`/charging/${vehicleId}/end`, {
+    return this.request('/charging/end', {
       method: 'POST',
-      body: JSON.stringify(sessionData),
+      body: JSON.stringify({ sessionId, ...sessionData }),
     });
   }
 
   async getChargingHistory(vehicleId: string): Promise<ChargingSession[]> {
-    return this.request(`/charging/${vehicleId}/history`);
+    return this.request(`/charging/history/${vehicleId}`);
   }
 
   // 5. Ownership & Traceability
-  async transferOwnership(transfer: {
+  async initiateOwnershipTransfer(transfer: {
     vehicleId: string;
-    oldOwner: string;
-    newOwner: string;
+    newOwnerId: string;
+    transferPrice?: number;
+    notes?: string;
   }): Promise<OwnershipTransfer> {
-    return this.request('/ownership/transfer', {
+    return this.request('/ownership/initiate', {
       method: 'POST',
       body: JSON.stringify(transfer),
     });
   }
 
+  async approveOwnershipTransfer(transferId: string, approved: boolean): Promise<OwnershipTransfer> {
+    return this.request('/ownership/approve', {
+      method: 'POST',
+      body: JSON.stringify({ transferId, approved }),
+    });
+  }
+
   async getOwnershipHistory(vehicleId: string): Promise<OwnershipTransfer[]> {
-    return this.request(`/ownership/${vehicleId}/history`);
+    return this.request(`/ownership/history/${vehicleId}`);
   }
 
   // 6. Blockchain Explorer
   async getBlockchainTransactions(): Promise<BlockchainTransaction[]> {
-    return this.request('/blockchain/transactions');
+    return this.request('/blockchain/recent');
   }
 
-  async getBlockchainTransaction(txId: string): Promise<BlockchainTransaction> {
-    return this.request(`/blockchain/transaction/${txId}`);
+  async getVehicleTransactions(vehicleId: string): Promise<BlockchainTransaction[]> {
+    return this.request(`/blockchain/vehicle/${vehicleId}`);
+  }
+
+  async getBlockchainStats(): Promise<{ byType: any[]; total: number }> {
+    return this.request('/blockchain/stats');
   }
 
   // 7. User Management
@@ -236,7 +289,11 @@ class FlexiEVAPI {
     email: string;
     password: string;
     role: User['role'];
-    name: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+      phoneNumber?: string;
+    };
   }): Promise<User> {
     return this.request('/users/register', {
       method: 'POST',
@@ -251,56 +308,64 @@ class FlexiEVAPI {
     });
   }
 
-  async getUser(id: string): Promise<User> {
-    return this.request(`/users/${id}`);
+  async getProfile(): Promise<User> {
+    return this.request('/users/profile');
+  }
+
+  async updateProfile(profile: Partial<User['profile']>): Promise<User> {
+    return this.request('/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify({ profile }),
+    });
   }
 
   // 8. Analytics / Insights
-  async getBatteryAnalytics(vehicleId: string): Promise<Analytics> {
-    return this.request(`/analytics/battery/${vehicleId}`);
+  async getVehicleAnalytics(vehicleId: string): Promise<Analytics> {
+    return this.request(`/analytics/vehicle/${vehicleId}/summary`);
   }
 
-  async getChargingAnalytics(vehicleId: string): Promise<Analytics> {
-    return this.request(`/analytics/charging/${vehicleId}`);
-  }
-
-  // 9. Integration APIs
-  async submitOEMData(data: { vehicleId: string; telemetry: any }): Promise<{ success: boolean; txId: string }> {
-    return this.request('/oem/integration', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async getOEMData(vehicleId: string): Promise<any> {
-    return this.request(`/oem/data/${vehicleId}`);
-  }
-
-  // 10. Security / Audit
-  async getAuditLogs(): Promise<any[]> {
-    return this.request('/audit/logs');
-  }
-
-  async verifyTransaction(txId: string): Promise<{ valid: boolean; details: any }> {
-    return this.request(`/audit/verify/${txId}`, {
-      method: 'POST',
-    });
-  }
-
-  // Bonus APIs
-  async getFleetSummary(): Promise<FleetSummary> {
-    return this.request('/fleet/summary');
-  }
-
-  async raiseAlert(vehicleId: string, alert: {
+  // 9. Alerts Management
+  async createAlert(alert: {
+    vehicleId: string;
     type: Alert['type'];
     severity: Alert['severity'];
     message: string;
+    data?: any;
   }): Promise<Alert> {
-    return this.request(`/alerts/${vehicleId}`, {
+    return this.request('/alerts/create', {
       method: 'POST',
       body: JSON.stringify(alert),
     });
+  }
+
+  async getVehicleAlerts(vehicleId: string): Promise<Alert[]> {
+    return this.request(`/alerts/vehicle/${vehicleId}`);
+  }
+
+  async updateAlert(alertId: string, status: Alert['status']): Promise<Alert> {
+    return this.request(`/alerts/${alertId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  // 10. Fleet Management
+  async getFleetSummary(): Promise<FleetSummary> {
+    // This would be a custom endpoint that aggregates data
+    const [vehicles, alerts, transactions] = await Promise.all([
+      this.getVehicles(),
+      this.getSystemInfo(),
+      this.getBlockchainStats(),
+    ]);
+    
+    return {
+      totalVehicles: vehicles.length,
+      activeVehicles: vehicles.filter(v => v.status === 'active').length,
+      totalChargingSessions: 0, // Would need charging data
+      totalEnergyDelivered: 0, // Would need charging data
+      totalAlerts: 0, // Would need alert data
+      recentTransactions: transactions.total,
+    };
   }
 }
 

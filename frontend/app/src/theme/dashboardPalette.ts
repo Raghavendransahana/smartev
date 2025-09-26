@@ -20,6 +20,7 @@ export const dashboardPalette = {
 };
 
 export const shadowStyles = {
+  // For React Native
   shadowColor: '#1F2937',
   shadowOffset: {
     width: 0,
@@ -28,4 +29,6 @@ export const shadowStyles = {
   shadowOpacity: 0.1,
   shadowRadius: 12,
   elevation: 8,
+  // For Web
+  boxShadow: '0 4px 12px rgba(31, 41, 55, 0.1)',
 };

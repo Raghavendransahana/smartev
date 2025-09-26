@@ -10,6 +10,7 @@ import {
   Modal,
   TextInput,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit';
 import { useTheme } from '../contexts/ThemeContext';
@@ -471,7 +472,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-  },
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
+  } as any,
   summaryTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -526,7 +528,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-  },
+    ...(Platform.OS === 'web' && { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }),
+  } as any,
   alertHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

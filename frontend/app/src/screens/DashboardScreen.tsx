@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,39 +6,112 @@ import {
   StyleSheet,
   RefreshControl,
   Image,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useVehicle } from '@/contexts/VehicleContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { createStyles } from '@/theme/styles';
 import { dashboardPalette, shadowStyles } from '@/theme/dashboardPalette';
+import { flexiEVAPI, Vehicle, BatteryTelemetry, Alert as ApiAlert } from '@/api/flexiEVApi';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { vehicleState, isConnected } = useVehicle();
+  const { user, isAuthenticated } = useAuth();
   const styles = createStyles(theme);
   
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [batteryData, setBatteryData] = useState<BatteryTelemetry | null>(null);
+  const [alerts, setAlerts] = useState<ApiAlert[]>([]);
 
-  const onRefresh = React.useCallback(() => {
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadDashboardData();
+    }
+  }, [isAuthenticated]);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load vehicles
+      const vehicleData = await flexiEVAPI.getVehicles();
+      setVehicles(vehicleData);
+      
+      if (vehicleData.length > 0) {
+        const firstVehicle = vehicleData[0];
+        setSelectedVehicle(firstVehicle);
+        
+        // Load battery data for first vehicle
+        try {
+          const batteryHistory = await flexiEVAPI.getBatteryHistory(firstVehicle._id);
+          if (batteryHistory.length > 0) {
+            setBatteryData(batteryHistory[0]);
+          }
+        } catch (error) {
+          console.log('No battery data available');
+        }
+        
+        // Load alerts for first vehicle
+        try {
+          const alertData = await flexiEVAPI.getVehicleAlerts(firstVehicle._id);
+          setAlerts(alertData);
+        } catch (error) {
+          console.log('No alerts available');
+        }
+      }
+    } catch (error: any) {
+      console.error('Error loading dashboard data:', error);
+      Alert.alert('Error', 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    // Simulate refresh
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
+    await loadDashboardData();
+    setRefreshing(false);
   }, []);
 
   const vehicleImage = 'https://images.pexels.com/photos/4517067/pexels-photo-4517067.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260';
 
   const detailRows = [
-    { label: 'Manufacturer', value: 'Tata Motors' },
-    { label: 'City and address', value: 'Coimbatore, Tamil Nadu' },
-    { label: 'Battery owner status', value: vehicleState.isCharging ? 'Charging' : 'Idle' },
-    { label: 'State of Charge', value: `${vehicleState.batteryLevel}%` },
-    { label: 'State of Health', value: '96%' },
-    { label: 'Cycles Completed', value: '142' },
-    { label: 'Warranty Status', value: 'Active - 1y remaining' },
+    { label: 'Manufacturer', value: selectedVehicle?.brand || 'N/A' },
+    { label: 'Model', value: selectedVehicle?.vehicleModel || 'N/A' },
+    { label: 'VIN', value: selectedVehicle?.vin || 'N/A' },
+    { label: 'Status', value: selectedVehicle?.status === 'active' ? 'Active' : 'Inactive' },
+    { label: 'State of Charge', value: batteryData ? `${batteryData.batteryLevel}%` : 'N/A' },
+    { label: 'State of Health', value: batteryData ? `${batteryData.health}%` : 'N/A' },
+    { label: 'Cycles Completed', value: batteryData ? `${batteryData.cycleCount}` : 'N/A' },
+    { label: 'Temperature', value: batteryData ? `${batteryData.temperature}°C` : 'N/A' },
   ];
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[screenStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={[screenStyles.detailValue, { marginTop: 16 }]}>Loading dashboard...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!selectedVehicle) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[screenStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={screenStyles.detailValue}>No vehicles found</Text>
+          <Text style={screenStyles.detailLabel}>Please register a vehicle first</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -54,14 +127,14 @@ const DashboardScreen: React.FC = () => {
         >
           <View style={screenStyles.heroHeader}>
             <View>
-              <Text style={screenStyles.vehicleTitle}>Tata Punch EV</Text>
+              <Text style={screenStyles.vehicleTitle}>{`${selectedVehicle.brand} ${selectedVehicle.vehicleModel}`}</Text>
               <View style={screenStyles.vehicleIdPill}>
-                <Text style={screenStyles.vehicleIdText}>345678123ALPHA</Text>
+                <Text style={screenStyles.vehicleIdText}>{selectedVehicle.vin}</Text>
               </View>
             </View>
-            <View style={[screenStyles.connectionPill, { backgroundColor: isConnected ? '#22c55e33' : '#ef444433' }]}>
-              <Text style={[screenStyles.connectionText, { color: isConnected ? '#22c55e' : '#ef4444' }]}>
-                {isConnected ? 'Connected' : 'Disconnected'}
+            <View style={[screenStyles.connectionPill, { backgroundColor: selectedVehicle.status === 'active' ? '#22c55e33' : '#ef444433' }]}>
+              <Text style={[screenStyles.connectionText, { color: selectedVehicle.status === 'active' ? '#22c55e' : '#ef4444' }]}>
+                {selectedVehicle.status === 'active' ? 'Active' : 'Inactive'}
               </Text>
             </View>
           </View>
@@ -71,15 +144,15 @@ const DashboardScreen: React.FC = () => {
           <View style={screenStyles.statusRow}>
             <View style={screenStyles.infoCard}>
               <Text style={screenStyles.cardLabel}>🔋 Battery</Text>
-              <Text style={screenStyles.cardSubtext}>Battery is {vehicleState.isCharging ? 'charging' : 'idle'}</Text>
-              <Text style={screenStyles.cardValue}>{vehicleState.batteryLevel}%</Text>
-              <Text style={screenStyles.cardFooter}>Charging complete</Text>
+              <Text style={screenStyles.cardSubtext}>Current status</Text>
+              <Text style={screenStyles.cardValue}>{batteryData ? `${batteryData.batteryLevel}%` : 'N/A'}</Text>
+              <Text style={screenStyles.cardFooter}>State of Charge</Text>
             </View>
             <View style={screenStyles.infoCard}>
-              <Text style={screenStyles.cardLabel}>🚗 Driven</Text>
-              <Text style={screenStyles.cardSubtext}>This week</Text>
-              <Text style={screenStyles.cardValue}>{Math.round(vehicleState.odometer ?? 4330)}</Text>
-              <Text style={screenStyles.cardFooter}>Kilometers completed</Text>
+              <Text style={screenStyles.cardLabel}>🌡️ Temperature</Text>
+              <Text style={screenStyles.cardSubtext}>Battery temp</Text>
+              <Text style={screenStyles.cardValue}>{batteryData ? `${batteryData.temperature}°C` : 'N/A'}</Text>
+              <Text style={screenStyles.cardFooter}>Current reading</Text>
             </View>
           </View>
         </View>

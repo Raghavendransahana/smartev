@@ -8,6 +8,6 @@
     "resolveJsonModule": true,
     "types": ["node", "hardhat"]
   },
-  "include": ["blockchain/scripts", "./test", "./typechain-types"],
-  "files": ["blockchain/hardhat.config.js"]
+  "include": ["./scripts", "./test", "./typechain-types"],
+  // "files": ["./hardhat.config.js"]
 }

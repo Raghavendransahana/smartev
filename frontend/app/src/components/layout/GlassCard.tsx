@@ -1,35 +1,43 @@
 import React, { ReactNode } from 'react';
 import { StyleSheet, View, StyleProp, ViewStyle } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { dashboardPalette, shadowStyles } from '@/theme/dashboardPalette';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface GlassCardProps {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
-  gradientColors?: [string, string];
+  backgroundColor?: string;
 }
 
-const GlassCard: React.FC<GlassCardProps> = ({ children, style, gradientColors }) => {
-  const colors = gradientColors ?? ['rgba(15,23,42,0.95)', 'rgba(2,6,23,0.9)'];
+const GlassCard: React.FC<GlassCardProps> = ({ children, style, backgroundColor }) => {
+  const { theme } = useTheme();
+  
+  const cardBackgroundColor = backgroundColor || theme.colors.surface;
 
   return (
-    <LinearGradient colors={colors} style={[styles.card, style]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-      <View style={styles.overlay}>{children}</View>
-    </LinearGradient>
+    <View style={[styles(theme).card, { backgroundColor: cardBackgroundColor }, style]}>
+      <View style={styles(theme).overlay}>{children}</View>
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (theme: any) => StyleSheet.create({
   card: {
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: dashboardPalette.border,
-    ...shadowStyles,
+    borderColor: theme.colors.border,
+    shadowColor: '#000000', // Better shadow for white theme
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
   overlay: {
-    borderRadius: 19,
+    borderRadius: 15,
     padding: 20,
-    backgroundColor: 'rgba(15,23,42,0.55)',
+    backgroundColor: 'transparent',
   },
 });
 

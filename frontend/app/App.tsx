@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-gesture-handler';
@@ -14,8 +14,8 @@ export default function App() {
       <ThemeProvider>
         <VehicleProvider>
           <NavigationContainer>
+            <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={false} />
             <AppNavigator />
-            <StatusBar style="auto" />
           </NavigationContainer>
         </VehicleProvider>
       </ThemeProvider>

@@ -8,10 +8,10 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useVehicle } from '@/contexts/VehicleContext';
 import { createStyles } from '@/theme/styles';
+import { dashboardPalette, shadowStyles } from '@/theme/dashboardPalette';
 
 const DashboardScreen: React.FC = () => {
   const { theme } = useTheme();
@@ -49,11 +49,8 @@ const DashboardScreen: React.FC = () => {
         }
         showsVerticalScrollIndicator={false}
       >
-        <LinearGradient
-          colors={['#0f172a', '#020617']}
+        <View
           style={screenStyles.heroCard}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
         >
           <View style={screenStyles.heroHeader}>
             <View>
@@ -85,17 +82,16 @@ const DashboardScreen: React.FC = () => {
               <Text style={screenStyles.cardFooter}>Kilometers completed</Text>
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={screenStyles.detailsContainer}>
-          <LinearGradient
-            colors={['#1f2937', '#111827']}
+          <View
             style={screenStyles.detailsHeader}
           >
             <Text style={screenStyles.detailsHeaderText}>Car Details</Text>
-          </LinearGradient>
+          </View>
 
-          <View style={[screenStyles.detailsCard, { backgroundColor: '#050816' }]}>
+          <View style={screenStyles.detailsCard}>
             {detailRows.map((row, index) => (
               <View key={row.label} style={screenStyles.detailRow}>
                 <Text style={screenStyles.detailLabel}>{row.label}</Text>
@@ -114,13 +110,15 @@ const screenStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#030712',
+    backgroundColor: dashboardPalette.background,
   },
   heroCard: {
+    backgroundColor: dashboardPalette.surface,
     borderRadius: 24,
     padding: 20,
     marginBottom: 24,
     overflow: 'hidden',
+    ...shadowStyles,
   },
   heroHeader: {
     flexDirection: 'row',
@@ -128,20 +126,20 @@ const screenStyles = StyleSheet.create({
     alignItems: 'center',
   },
   vehicleTitle: {
-    color: 'white',
+    color: dashboardPalette.textPrimary,
     fontSize: 26,
     fontWeight: '700',
   },
   vehicleIdPill: {
     marginTop: 6,
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(59,130,246,0.2)',
+    backgroundColor: dashboardPalette.accentPrimary + '20',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
   },
   vehicleIdText: {
-    color: '#38bdf8',
+    color: dashboardPalette.accentPrimary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -167,65 +165,75 @@ const screenStyles = StyleSheet.create({
   },
   infoCard: {
     flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.75)',
+    backgroundColor: dashboardPalette.surfaceMuted,
     borderRadius: 18,
     padding: 16,
+    borderWidth: 1,
+    borderColor: dashboardPalette.border,
   },
   cardLabel: {
-    color: '#38bdf8',
+    color: dashboardPalette.accentPrimary,
     fontSize: 14,
     fontWeight: '600',
   },
   cardSubtext: {
-    color: 'rgba(226,232,240,0.7)',
+    color: dashboardPalette.textSecondary,
     marginTop: 6,
     marginBottom: 12,
   },
   cardValue: {
-    color: 'white',
+    color: dashboardPalette.textPrimary,
     fontSize: 36,
     fontWeight: '700',
   },
   cardFooter: {
-    color: 'rgba(226,232,240,0.7)',
+    color: dashboardPalette.textSecondary,
     marginTop: 4,
   },
   detailsContainer: {
     marginBottom: 32,
   },
   detailsHeader: {
+    backgroundColor: dashboardPalette.surfaceAlt,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 16,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: dashboardPalette.border,
   },
   detailsHeaderText: {
-    color: 'white',
+    color: dashboardPalette.textPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
   detailsCard: {
+    backgroundColor: dashboardPalette.surface,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
     paddingVertical: 8,
     paddingHorizontal: 16,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: dashboardPalette.border,
   },
   detailRow: {
     paddingVertical: 12,
   },
   detailLabel: {
-    color: 'rgba(148,163,184,0.9)',
+    color: dashboardPalette.textSecondary,
     fontSize: 14,
     marginBottom: 4,
   },
   detailValue: {
-    color: 'white',
+    color: dashboardPalette.textPrimary,
     fontSize: 15,
     fontWeight: '600',
   },
   detailDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(148,163,184,0.2)',
+    backgroundColor: dashboardPalette.borderFaint,
     marginTop: 12,
   },
 });

@@ -1,7 +1,6 @@
 import React, { ReactNode } from 'react';
 import { StyleSheet, View, ScrollView, StyleProp, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { dashboardPalette } from '@/theme/dashboardPalette';
 
 interface ScreenContainerProps {
@@ -20,12 +19,7 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
   if (scrollable) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <LinearGradient
-          colors={[...dashboardPalette.gradient]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradient}
-        >
+        <View style={styles.gradient}>
           <ScrollView
             style={[styles.container, style]}
             contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
@@ -33,21 +27,16 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
           >
             {children}
           </ScrollView>
-        </LinearGradient>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient
-        colors={[...dashboardPalette.gradient]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
-      >
+      <View style={styles.gradient}>
         <View style={[styles.container, style]}>{children}</View>
-      </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 };
@@ -59,6 +48,7 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
+    backgroundColor: dashboardPalette.background,
   },
   container: {
     flex: 1,

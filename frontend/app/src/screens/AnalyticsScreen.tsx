@@ -20,40 +20,40 @@ const { width } = Dimensions.get('window');
 const chartWidth = Math.max(Math.min(width - 64, 520), 280);
 
 const gradientPresets = {
-  base: ['rgba(15,23,42,0.95)', 'rgba(2,6,23,0.88)'] as [string, string],
-  highlight: ['rgba(37,99,235,0.38)', 'rgba(56,189,248,0.18)'] as [string, string],
-  accent: ['rgba(34,197,94,0.32)', 'rgba(6,95,70,0.12)'] as [string, string],
-  cool: ['rgba(56,189,248,0.32)', 'rgba(8,47,73,0.16)'] as [string, string],
+  base: ['rgba(255,255,255,0.95)', 'rgba(249,250,251,0.88)'] as [string, string],
+  highlight: ['rgba(30,64,175,0.15)', 'rgba(30,64,175,0.08)'] as [string, string],
+  accent: ['rgba(5,150,105,0.15)', 'rgba(5,150,105,0.08)'] as [string, string],
+  cool: ['rgba(30,64,175,0.12)', 'rgba(30,64,175,0.06)'] as [string, string],
 };
 
 const pieChartConfig = {
   backgroundColor: 'transparent',
-  backgroundGradientFrom: 'rgba(15,23,42,0.95)',
-  backgroundGradientTo: 'rgba(15,23,42,0.95)',
-  color: (opacity = 1) => `rgba(56, 189, 248, ${opacity})`,
-  labelColor: () => dashboardPalette.textSecondary,
+  backgroundGradientFrom: dashboardPalette.surface,
+  backgroundGradientTo: dashboardPalette.surface,
+  color: (opacity = 1) => `rgba(30, 64, 175, ${opacity})`,
+  labelColor: () => dashboardPalette.textPrimary,
 };
 
 const lineChartConfig = {
-  backgroundGradientFrom: 'rgba(15,23,42,0.9)',
-  backgroundGradientTo: 'rgba(15,23,42,0.75)',
+  backgroundGradientFrom: dashboardPalette.surface,
+  backgroundGradientTo: dashboardPalette.surfaceMuted,
   backgroundColor: 'transparent',
   decimalPlaces: 1,
-  color: (opacity = 1) => `rgba(56, 189, 248, ${opacity})`,
-  labelColor: () => dashboardPalette.textSecondary,
+  color: (opacity = 1) => `rgba(30, 64, 175, ${opacity})`,
+  labelColor: () => dashboardPalette.textPrimary,
   propsForDots: {
     r: '5',
     strokeWidth: '2',
-    stroke: '#38bdf8',
+    stroke: dashboardPalette.accentPrimary,
   },
   propsForBackgroundLines: {
-    stroke: 'rgba(59,130,246,0.15)',
+    stroke: dashboardPalette.border,
   },
-  fillShadowGradient: '#38bdf8',
-  fillShadowGradientOpacity: 0.22,
+  fillShadowGradient: dashboardPalette.accentPrimary,
+  fillShadowGradientOpacity: 0.15,
 };
 
-const badgeSurfaceColor = 'rgba(56,189,248,0.16)';
+const badgeSurfaceColor = dashboardPalette.accentPrimary + '20';
 
 type AnalyticsTabId = 'battery' | 'charging';
 
@@ -184,7 +184,7 @@ const AnalyticsScreen: React.FC = () => {
 
     return (
       <View style={styles.sectionStack}>
-        <GlassCard style={styles.cardSpacing} gradientColors={gradientPresets.highlight}>
+        <GlassCard style={styles.cardSpacing}>
           <View style={styles.cardHeaderRow}>
             <View>
               <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Battery health</Text>
@@ -236,7 +236,7 @@ const AnalyticsScreen: React.FC = () => {
         </GlassCard>
 
         {batteryAnalytics.recommendedActions.length > 0 && (
-          <GlassCard style={styles.cardSpacing} gradientColors={gradientPresets.accent}>
+          <GlassCard style={styles.cardSpacing}>
             <View style={styles.cardHeaderRow}>
               <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recommended actions</Text>
               <Text style={[styles.cardHint, { color: theme.colors.textSecondary }]}>AI generated</Text>
@@ -274,7 +274,7 @@ const AnalyticsScreen: React.FC = () => {
 
     return (
       <View style={styles.sectionStack}>
-        <GlassCard style={styles.cardSpacing} gradientColors={gradientPresets.cool}>
+        <GlassCard style={styles.cardSpacing}>
           <View style={styles.cardHeaderRow}>
             <View>
               <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Charging efficiency</Text>
@@ -355,7 +355,7 @@ const AnalyticsScreen: React.FC = () => {
         )}
 
         {chargingAnalytics.recommendedActions.length > 0 && (
-          <GlassCard style={styles.cardSpacing} gradientColors={gradientPresets.accent}>
+          <GlassCard style={styles.cardSpacing}>
             <View style={styles.cardHeaderRow}>
               <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Charging playbook</Text>
               <Text style={[styles.cardHint, { color: theme.colors.textSecondary }]}>Tailored actions</Text>

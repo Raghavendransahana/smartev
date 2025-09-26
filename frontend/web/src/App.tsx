@@ -5,13 +5,14 @@ import { LoginPage } from './pages/LoginPage'
 import { SuperAdminDashboard } from './pages/NewSuperAdminDashboard'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { SellerDashboard } from './pages/SellerDashboard'
+import { UserManagement } from './pages/UserManagement'
 import { Layout } from './components/layout/Layout'
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-zinc-950">
+        <div className="min-h-screen bg-gray-50">
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -25,10 +26,26 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/super-admin/users" element={
+              <ProtectedRoute requiredRoles={['Super Admin']}>
+                <Layout>
+                  <UserManagement />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
             <Route path="/admin" element={
               <ProtectedRoute requiredRoles={['Admin']}>
                 <Layout>
                   <AdminDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/users" element={
+              <ProtectedRoute requiredRoles={['Admin']}>
+                <Layout>
+                  <UserManagement />
                 </Layout>
               </ProtectedRoute>
             } />

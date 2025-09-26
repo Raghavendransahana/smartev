@@ -137,3 +137,93 @@ export const updateUserProfile = async (userId: string, updateData: UpdateProfil
 
   return updatedUser;
 };
+
+interface GetUsersParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: UserRole;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export const getAllUsers = async (params: GetUsersParams = {}) => {
+  const {
+    page = 1,
+    limit = 50,
+    search,
+    role,
+    sortBy = 'createdAt',
+    sortOrder = 'desc'
+  } = params;
+
+  // Build filter query
+  const filter: any = {};
+  
+  if (search) {
+    filter.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } }
+    ];
+  }
+  
+  if (role) {
+    filter.role = role;
+  }
+
+  // Build sort options
+  const sort: any = {};
+  sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+  // Calculate skip value for pagination
+  const skip = (page - 1) * limit;
+
+  // Execute query
+  const [users, totalCount] = await Promise.all([
+    UserModel.find(filter)
+      .select('-passwordHash')
+      .sort(sort)
+      .skip(skip)
+      .limit(limit),
+    UserModel.countDocuments(filter)
+  ]);
+
+  return {
+    users,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      totalCount,
+      hasNextPage: page < Math.ceil(totalCount / limit),
+      hasPrevPage: page > 1
+    }
+  };
+};
+
+export const deleteUser = async (userId: string) => {
+  const user = await UserModel.findByIdAndDelete(userId);
+  if (!user) {
+    throw createHttpError(404, 'User not found');
+  }
+  return user;
+};
+
+interface UpdateUserParams {
+  name?: string;
+  email?: string;
+  role?: UserRole;
+}
+
+export const updateUser = async (userId: string, updateData: UpdateUserParams) => {
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    userId,
+    { $set: updateData },
+    { new: true, runValidators: true }
+  ).select('-passwordHash');
+
+  if (!updatedUser) {
+    throw createHttpError(404, 'User not found');
+  }
+
+  return updatedUser;
+};

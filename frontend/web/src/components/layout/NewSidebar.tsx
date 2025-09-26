@@ -68,6 +68,12 @@ const getNavigationByRole = (role: UserRole): NavigationItem[] => {
           roles: ['Super Admin'] as UserRole[],
         },
         {
+          name: 'User Management',
+          href: '/super-admin/users',
+          icon: User,
+          roles: ['Super Admin'] as UserRole[],
+        },
+        {
           name: 'Complaints',
           href: '/super-admin/complaints',
           icon: AlertTriangle,
@@ -188,7 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar */}
       <div
         className={cn(
-          'flex flex-col bg-zinc-900 border-r border-zinc-800',
+          'flex flex-col bg-white border-r border-gray-200',
           isMobile
             ? 'fixed left-0 top-0 h-full w-72 z-50 lg:hidden'
             : cn(
@@ -200,7 +206,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Logo/Brand */}
         <div className={cn(
-          'flex items-center px-6 py-4 border-b border-zinc-800',
+          'flex items-center px-6 py-4 border-b border-gray-200',
           isCollapsed && !isMobile && 'px-4'
         )}>
           <div className="flex items-center space-x-2">
@@ -209,8 +215,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             {(!isCollapsed || isMobile) && (
               <div>
-                <h2 className="text-lg font-bold text-zinc-100">SmartEV</h2>
-                <p className="text-xs text-zinc-400">Lifecycle Platform</p>
+                <h2 className="text-lg font-bold text-gray-900">SmartEV</h2>
+                <p className="text-xs text-gray-600">Lifecycle Platform</p>
               </div>
             )}
           </div>
@@ -218,20 +224,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* User info */}
         <div className={cn(
-          'px-6 py-4 border-b border-zinc-800',
+          'px-6 py-4 border-b border-gray-200',
           isCollapsed && !isMobile && 'px-4'
         )}>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center">
-              <User className="text-zinc-400" size={20} />
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+              <User className="text-gray-600" size={20} />
             </div>
             {(!isCollapsed || isMobile) && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-zinc-100 truncate">
+                <p className="text-sm font-medium text-gray-900 truncate">
                   {user?.name}
                 </p>
                 <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" className="bg-zinc-800 text-zinc-300 text-xs">
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-xs">
                     {user?.role}
                   </Badge>
                 </div>
@@ -253,8 +259,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={cn(
                   'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-800'
-                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800',
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100',
                   isCollapsed && !isMobile && 'justify-center px-2'
                 )}
               >
@@ -265,7 +271,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {item.badge && item.badge > 0 && (
                       <Badge
                         variant="destructive"
-                        className="ml-auto bg-red-900 text-red-300 text-xs px-1.5 py-0.5"
+                        className="ml-auto bg-red-100 text-red-700 text-xs px-1.5 py-0.5"
                       >
                         {item.badge}
                       </Badge>
@@ -279,15 +285,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Notifications (if not collapsed) */}
         {(!isCollapsed || isMobile) && (
-          <div className="px-4 py-3 border-t border-zinc-800">
+          <div className="px-4 py-3 border-t border-gray-200">
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+              className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100"
             >
               <Bell size={16} className="mr-2" />
               Notifications
-              <Badge variant="destructive" className="ml-auto bg-red-900 text-red-300 text-xs">
+              <Badge variant="destructive" className="ml-auto bg-red-100 text-red-700 text-xs">
                 3
               </Badge>
             </Button>
@@ -296,14 +302,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Settings and Logout */}
         <div className={cn(
-          'px-4 py-4 border-t border-zinc-800 space-y-2',
+          'px-4 py-4 border-t border-gray-200 space-y-2',
           isCollapsed && !isMobile && 'px-2'
         )}>
           <Button
             variant="ghost"
             size="sm"
             className={cn(
-              'w-full text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800',
+              'w-full text-gray-600 hover:text-gray-900 hover:bg-gray-100',
               isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-start'
             )}
           >
@@ -316,7 +322,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             size="sm"
             onClick={handleLogout}
             className={cn(
-              'w-full text-red-400 hover:text-red-300 hover:bg-red-900/20',
+              'w-full text-red-600 hover:text-red-700 hover:bg-red-50',
               isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-start'
             )}
           >

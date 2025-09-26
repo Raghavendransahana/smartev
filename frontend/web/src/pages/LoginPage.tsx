@@ -58,38 +58,38 @@ export const LoginPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-16 w-16 bg-emerald-600 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-emerald-600/20">
             <Zap className="text-white" size={28} />
           </div>
-          <h2 className="text-3xl font-bold text-zinc-100">
+          <h2 className="text-3xl font-bold text-gray-900">
             SmartEV Platform
           </h2>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-gray-600">
             Enterprise EV lifecycle management system
           </p>
         </div>
 
         {/* Login Form */}
-        <Card className="border-zinc-800 bg-zinc-900 shadow-2xl">
+        <Card className="border-gray-200 bg-white shadow-2xl">
           <CardHeader>
-            <CardTitle className="text-center text-zinc-100">Sign in to continue</CardTitle>
+            <CardTitle className="text-center text-gray-900">Sign in to continue</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-zinc-300">
+                <label className="block text-sm font-medium text-gray-700">
                   Email Address
                 </label>
                 <Input
@@ -99,13 +99,13 @@ export const LoginPage: React.FC = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter your email"
-                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-emerald-500 focus:ring-emerald-500"
+                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
 
               {/* Password */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-zinc-300">
+                <label className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <Input
@@ -115,20 +115,20 @@ export const LoginPage: React.FC = () => {
                   onChange={handleInputChange}
                   required
                   placeholder="Enter your password"
-                  className="bg-zinc-800 border-zinc-700 text-zinc-100 placeholder-zinc-400 focus:border-emerald-500 focus:ring-emerald-500"
+                  className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-emerald-500"
                 />
               </div>
 
               {/* Role Selection */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-zinc-300">
+                <label className="block text-sm font-medium text-gray-700">
                   Select Role
                 </label>
                 <select
                   name="role"
                   value={formData.role}
                   onChange={handleInputChange}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:ring-emerald-500 focus:border-emerald-500 focus:ring-2"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 focus:ring-2"
                 >
                   <option value="Super Admin">Super Admin</option>
                   <option value="Admin">Brand Admin</option>
@@ -138,8 +138,8 @@ export const LoginPage: React.FC = () => {
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-900/50 border border-red-800 rounded-lg p-3">
-                  <p className="text-sm text-red-300">{error}</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-red-700">{error}</p>
                 </div>
               )}
 
@@ -156,7 +156,7 @@ export const LoginPage: React.FC = () => {
               <div className="text-center">
                 <button
                   type="button"
-                  className="text-sm text-zinc-400 hover:text-emerald-400 transition-colors"
+                  className="text-sm text-gray-600 hover:text-emerald-600 transition-colors"
                 >
                   Forgot your password?
                 </button>
@@ -166,19 +166,19 @@ export const LoginPage: React.FC = () => {
         </Card>
 
         {/* Demo Credentials */}
-        {/* <Card className="border-zinc-800 bg-zinc-900/50">
+        {/* <Card className="border-gray-200 bg-white/50">
           <CardContent className="pt-6">
-            <h3 className="text-sm font-semibold text-zinc-200 mb-4 flex items-center">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center">
               <Shield size={16} className="mr-2 text-emerald-400" />
               Demo Credentials
             </h3>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-100/50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <Shield size={16} className="text-emerald-400" />
                   <div>
-                    <p className="text-sm font-medium text-zinc-200">Super Admin</p>
-                    <p className="text-xs text-zinc-400">admin@smartev.com</p>
+                    <p className="text-sm font-medium text-gray-900">Super Admin</p>
+                    <p className="text-xs text-gray-600">admin@smartev.com</p>
                   </div>
                 </div>
                 <Badge variant="outline" className="border-emerald-700 text-emerald-400">
@@ -186,12 +186,12 @@ export const LoginPage: React.FC = () => {
                 </Badge>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-100/50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <Users size={16} className="text-blue-400" />
                   <div>
-                    <p className="text-sm font-medium text-zinc-200">Brand Admin</p>
-                    <p className="text-xs text-zinc-400">brand@smartev.com</p>
+                    <p className="text-sm font-medium text-gray-900">Brand Admin</p>
+                    <p className="text-xs text-gray-600">brand@smartev.com</p>
                   </div>
                 </div>
                 <Badge variant="outline" className="border-blue-700 text-blue-400">
@@ -199,12 +199,12 @@ export const LoginPage: React.FC = () => {
                 </Badge>
               </div>
               
-              <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-gray-100/50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <ShoppingCart size={16} className="text-amber-400" />
                   <div>
-                    <p className="text-sm font-medium text-zinc-200">Sales Agent</p>
-                    <p className="text-xs text-zinc-400">agent@smartev.com</p>
+                    <p className="text-sm font-medium text-gray-900">Sales Agent</p>
+                    <p className="text-xs text-gray-600">agent@smartev.com</p>
                   </div>
                 </div>
                 <Badge variant="outline" className="border-amber-700 text-amber-400">
@@ -216,7 +216,7 @@ export const LoginPage: React.FC = () => {
         </Card> */}
 
         {/* Footer */}
-        <div className="text-center text-xs text-zinc-500">
+        <div className="text-center text-xs text-gray-500">
           <p>© 2025 SmartEV Platform. All rights reserved.</p>
           <p className="mt-1">Secure • Enterprise • Sustainable</p>
         </div>

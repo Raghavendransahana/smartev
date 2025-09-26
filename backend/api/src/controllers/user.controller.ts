@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { registerUser, authenticateUser, getUserProfile, updateUserProfile } from '../services/user.service';
+import { registerUser, authenticateUser, getUserProfile, updateUserProfile, getAllUsers, updateUser as updateUserService, deleteUser as deleteUserService } from '../services/user.service';
 import { createAuditLog } from '../services/audit.service';
 import { Types } from 'mongoose';
 import { wrapAsync } from '../middlewares/errorHandler';
@@ -108,9 +108,80 @@ export const updateProfile = wrapAsync(async (req: Request, res: Response): Prom
   }
 });
 
+export const getUsers = wrapAsync(async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { page, limit, search, role, sortBy, sortOrder } = req.query;
+    
+    const result = await getAllUsers({
+      page: page ? parseInt(page as string) : undefined,
+      limit: limit ? parseInt(limit as string) : undefined,
+      search: search as string,
+      role: role as any,
+      sortBy: sortBy as string,
+      sortOrder: sortOrder as 'asc' | 'desc'
+    });
+    
+    res.json(result);
+  } catch (error: any) {
+    if (error.status) {
+      throw error;
+    }
+    throw createHttpError(500, 'Failed to retrieve users');
+  }
+});
+
+export const updateUser = wrapAsync(async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const updatedUser = await updateUserService(id, req.body);
+    
+    // Log successful user update
+    const userFromToken = req.user as { _id: Types.ObjectId };
+    await createAuditLog(req, 'user_update', 'User', id, {
+      updatedBy: userFromToken._id.toString(),
+      updatedFields: Object.keys(req.body)
+    });
+    
+    res.json({
+      message: 'User updated successfully',
+      user: updatedUser
+    });
+  } catch (error: any) {
+    if (error.status) {
+      throw error;
+    }
+    throw createHttpError(500, 'Failed to update user');
+  }
+});
+
+export const deleteUser = wrapAsync(async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    await deleteUserService(id);
+    
+    // Log successful user deletion
+    const userFromToken = req.user as { _id: Types.ObjectId };
+    await createAuditLog(req, 'user_delete', 'User', id, {
+      deletedBy: userFromToken._id.toString()
+    });
+    
+    res.json({
+      message: 'User deleted successfully'
+    });
+  } catch (error: any) {
+    if (error.status) {
+      throw error;
+    }
+    throw createHttpError(500, 'Failed to delete user');
+  }
+});
+
 export const userController = {
   register,
   login,
   getProfile,
-  updateProfile
+  updateProfile,
+  getUsers,
+  updateUser,
+  deleteUser
 };

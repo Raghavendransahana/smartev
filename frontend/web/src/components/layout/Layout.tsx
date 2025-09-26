@@ -47,7 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar - Desktop */}
       {!isMobile && (
         <Sidebar
@@ -69,21 +69,21 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <div className="bg-zinc-900 border-b border-zinc-800 px-4 lg:px-6 h-16 flex items-center justify-between">
+        <div className="bg-white border-b border-gray-200 px-4 lg:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
               onClick={handleSidebarToggle}
-              className="lg:hidden text-zinc-400 hover:text-zinc-100"
+              className="lg:hidden text-gray-600 hover:text-gray-900"
             >
               ☰
             </button>
-            <h1 className="text-xl font-semibold text-zinc-100">SmartEV Platform</h1>
+            <h1 className="text-xl font-semibold text-gray-900">SmartEV Platform</h1>
           </div>
           {user && (
             <div className="flex items-center space-x-3">
               <div className="text-right">
-                <p className="text-sm font-medium text-zinc-100">{user.name}</p>
-                <p className="text-xs text-zinc-400">{user.role}</p>
+                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                <p className="text-xs text-gray-600">{user.role}</p>
               </div>
             </div>
           )}
@@ -118,12 +118,12 @@ export const PageWrapper: React.FC<{
         <div className="flex items-start justify-between">
           <div>
             {title && (
-              <h1 className="text-2xl font-semibold text-zinc-100">
+              <h1 className="text-2xl font-semibold text-gray-900">
                 {title}
               </h1>
             )}
             {description && (
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-sm text-gray-600">
                 {description}
               </p>
             )}

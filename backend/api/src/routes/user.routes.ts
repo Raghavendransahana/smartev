@@ -92,9 +92,31 @@ const updateProfileSchema = z.object({
 router.post('/register', validateRequest(registerSchema), userController.register);
 router.post('/login', validateRequest(loginSchema), userController.login);
 
+const updateUserSchema = z.object({
+  body: z.object({
+    name: z.string()
+      .min(1, 'Name is required')
+      .max(100, 'Name must be less than 100 characters')
+      .trim()
+      .optional(),
+    email: z.string()
+      .email('Invalid email format')
+      .toLowerCase()
+      .trim()
+      .max(255, 'Email must be less than 255 characters')
+      .optional(),
+    role: z.enum(['owner', 'oem', 'regulator', 'service_provider', 'admin']).optional(),
+  })
+});
+
 // Protected routes
 router.get('/profile', authMiddleware, userController.getProfile);
 router.get('/profile/:id', authMiddleware, userController.getProfile);
 router.put('/profile', authMiddleware, validateRequest(updateProfileSchema), userController.updateProfile);
+
+// Admin-only routes for user management
+router.get('/', authMiddleware, userController.getUsers);
+router.put('/:id', authMiddleware, validateRequest(updateUserSchema), userController.updateUser);
+router.delete('/:id', authMiddleware, userController.deleteUser);
 
 export { router as userRouter };

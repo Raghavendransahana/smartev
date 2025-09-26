@@ -18,7 +18,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
-        <div className="text-zinc-300 text-lg">Loading...</div>
+        <div className="text-gray-700 text-lg">Loading...</div>
       </div>
     );
   }
@@ -31,8 +31,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return fallback || (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-zinc-100 mb-2">Access Denied</h1>
-          <p className="text-zinc-400">You don't have permission to access this page.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600">You don't have permission to access this page.</p>
         </div>
       </div>
     );
@@ -47,7 +47,7 @@ export const RoleBasedRedirect: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
-        <div className="text-zinc-300 text-lg">Loading...</div>
+        <div className="text-gray-700 text-lg">Loading...</div>
       </div>
     );
   }

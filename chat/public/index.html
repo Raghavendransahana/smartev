@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexiEV Chat Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .status-indicator {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message.assistant {
+            background: #f1f5f9;
+            color: #334155;
+            align-self: flex-start;
+            border: 1px solid #e2e8f0;
+        }
+
+        .message.typing {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            align-self: flex-start;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #64748b;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 16px;
+            resize: none;
+            min-height: 20px;
+            max-height: 120px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .welcome-message h2 {
+            color: #334155;
+            margin-bottom: 10px;
+        }
+
+        .brand-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .brand-tag {
+            background: #e2e8f0;
+            color: #475569;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 20px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 90vh;
+                border-radius: 0;
+            }
+            
+            .chat-header h1 {
+                font-size: 20px;
+            }
+            
+            .status-indicator {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🚗 FlexiEV Chat Assistant</h1>
+            <p>Your expert guide for Electric Vehicles in India</p>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span style="font-size: 12px;">Online</span>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h2>Welcome to FlexiEV Assistant! 👋</h2>
+                <p>I'm here to help you with all your Electric Vehicle questions in India.</p>
+                <p>Ask me about battery health, charging strategies, troubleshooting, or any EV-related topic!</p>
+                <div class="brand-tags">
+                    <span class="brand-tag">Tata</span>
+                    <span class="brand-tag">Mahindra</span>
+                    <span class="brand-tag">MG Motor</span>
+                    <span class="brand-tag">Hyundai</span>
+                    <span class="brand-tag">Kia</span>
+                    <span class="brand-tag">BYD</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <form class="chat-input-form" id="chatForm">
+                <textarea 
+                    id="messageInput" 
+                    class="chat-input" 
+                    placeholder="Ask me anything about EVs... (e.g., 'How to optimize battery life in Tata Nexon EV?')"
+                    rows="1"
+                    maxlength="500"
+                ></textarea>
+                <button type="submit" class="send-button" id="sendButton">
+                    <span>Send</span>
+                    <span>📤</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class EVChatApp {
+            constructor() {
+                this.chatMessages = document.getElementById('chatMessages');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.chatForm = document.getElementById('chatForm');
+                
+                this.baseURL = 'http://localhost:4500'; // Update if backend is hosted elsewhere
+                this.isTyping = false;
+                
+                this.initEventListeners();
+                this.checkServerHealth();
+            }
+            
+            initEventListeners() {
+                this.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
+                
+                this.messageInput.addEventListener('input', () => {
+                    this.autoResize();
+                    this.updateSendButton();
+                });
+                
+                this.messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.handleSubmit(e);
+                    }
+                });
+            }
+            
+            autoResize() {
+                this.messageInput.style.height = 'auto';
+                this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 120) + 'px';
+            }
+            
+            updateSendButton() {
+                const hasText = this.messageInput.value.trim().length > 0;
+                this.sendButton.disabled = !hasText || this.isTyping;
+            }
+            
+            async checkServerHealth() {
+                try {
+                    const response = await fetch(`${this.baseURL}/api/health`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'healthy') {
+                        console.log('✅ Server status:', data.status);
+                    } else {
+                        console.error('❌ Server health check failed:', data);
+                        this.showError(`Server issue: ${data.error}. ${data.details || ''}`);
+                    }
+                } catch (error) {
+                    console.error('❌ Server health check failed:', error);
+                    this.showError('Unable to connect to the server. Please check if the service is running on port 4500.');
+                }
+            }
+            
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                const message = this.messageInput.value.trim();
+                if (!message || this.isTyping) return;
+                
+                // Add user message
+                this.addMessage(message, 'user');
+                
+                // Clear input
+                this.messageInput.value = '';
+                this.autoResize();
+                this.updateSendButton();
+                
+                // Show typing indicator
+                this.showTyping();
+                
+                try {
+                    const response = await fetch(`${this.baseURL}/api/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `Server error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Remove typing indicator and add response
+                    this.hideTyping();
+                    this.addMessage(data.answer, 'assistant');
+                    
+                } catch (error) {
+                    console.error('Chat error:', error);
+                    this.hideTyping();
+                    
+                    let errorMessage = 'Sorry, I encountered an error. Please try again.';
+                    
+                    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                        errorMessage = 'Unable to connect to the server. Please ensure the service is running on port 4500.';
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    
+                    this.addMessage(errorMessage, 'assistant');
+                }
+            }
+            
+            addMessage(content, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                messageDiv.textContent = content;
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+            
+            showTyping() {
+                this.isTyping = true;
+                this.updateSendButton();
+                
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message typing';
+                typingDiv.id = 'typingIndicator';
+                typingDiv.innerHTML = `
+                    EV Assistant is typing
+                    <span class="typing-dots">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                    </span>
+                `;
+                
+                this.chatMessages.appendChild(typingDiv);
+                this.scrollToBottom();
+            }
+            
+            hideTyping() {
+                this.isTyping = false;
+                this.updateSendButton();
+                
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            showError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = message;
+                
+                this.chatMessages.insertBefore(errorDiv, this.chatMessages.firstChild);
+            }
+            
+            scrollToBottom() {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+        }
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new EVChatApp();
+        });
+    </script>
+</body>
+</html>

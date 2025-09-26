@@ -1,11 +1,11 @@
 {
   "info": {
     "name": "FlexiEVChain API",
-    "description": "Complete API collection for FlexiEVChain platform with MongoDB Atlas backend",
+    "description": "Complete production-ready API collection for FlexiEVChain platform with comprehensive endpoint coverage",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_postman_id": "flexievchain-api-collection",
+    "_postman_id": "flexievchain-api-collection-v2",
     "version": {
-      "major": 1,
+      "major": 2,
       "minor": 0,
       "patch": 0
     }
@@ -18,6 +18,31 @@
     },
     {
       "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vehicleId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alertId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transferId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "passportId",
       "value": "",
       "type": "string"
     }
@@ -66,7 +91,11 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.status === 'Created') {",
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
                   "    const response = pm.response.json();",
                   "    pm.test('Registration successful', () => {",
                   "        pm.expect(response).to.have.property('token');",
@@ -77,6 +106,7 @@
                   "    // Store the auth token for subsequent requests",
                   "    if (response.token) {",
                   "        pm.collectionVariables.set('authToken', response.token);",
+                  "        console.log('Auth token saved to collection variables');",
                   "    }",
                   "}"
                 ],
@@ -112,7 +142,11 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.status === 'OK') {",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
                   "    pm.test('Login successful', () => {",
                   "        pm.expect(response).to.have.property('token');",
@@ -123,6 +157,7 @@
                   "    // Store the auth token for subsequent requests",
                   "    if (response.token) {",
                   "        pm.collectionVariables.set('authToken', response.token);",
+                  "        console.log('Auth token saved to collection variables');",
                   "    }",
                   "}"
                 ],
@@ -203,6 +238,26 @@
             "description": "Update current user's profile (requires authentication)"
           },
           "response": []
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "profile"]
+            },
+            "description": "Delete current user account"
+          },
+          "response": []
         }
       ]
     },
@@ -211,6 +266,31 @@
       "item": [
         {
           "name": "Register Vehicle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response._id) {",
+                  "        pm.collectionVariables.set('vehicleId', response._id);",
+                  "        console.log('Vehicle ID saved to collection variables');",
+                  "    }",
+                  "    if (response.passportId) {",
+                  "        pm.collectionVariables.set('passportId', response.passportId);",
+                  "        console.log('Passport ID saved to collection variables');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -226,7 +306,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"brand\": \"Tesla\",\n  \"vehicleModel\": \"Model 3\",\n  \"vin\": \"1HGBH41JXMN109186\",\n  \"status\": \"active\"\n}"
+              "raw": "{\n  \"brand\": \"Tesla\",\n  \"vehicleModel\": \"Model 3\",\n  \"vin\": \"1HGBH41JXMN109186\",\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{baseUrl}}/api/vehicles",
@@ -269,18 +354,64 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/vehicles/:vehicleId",
+              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "vehicles", ":vehicleId"],
-              "variable": [
-                {
-                  "key": "vehicleId",
-                  "value": "YOUR_VEHICLE_ID_HERE",
-                  "description": "Replace with actual vehicle ID"
-                }
-              ]
+              "path": ["api", "vehicles", "{{vehicleId}}"]
             },
             "description": "Get details of a specific vehicle"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"color\": \"Blue\",\n  \"batterySpecs\": {\n    \"capacity\": 75,\n    \"type\": \"lithium-ion\",\n    \"manufacturer\": \"Panasonic\",\n    \"cycleCount\": 100\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", "{{vehicleId}}"]
+            },
+            "description": "Update vehicle information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/vehicles/{{vehicleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "vehicles", "{{vehicleId}}"]
+            },
+            "description": "Delete a vehicle from the system"
           },
           "response": []
         }
@@ -306,7 +437,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"vehicleId\": \"YOUR_VEHICLE_ID_HERE\",\n  \"batteryLevel\": 85.5,\n  \"voltage\": 400.2,\n  \"temperature\": 32.1,\n  \"cycleCount\": 245,\n  \"healthPercentage\": 92.3,\n  \"chargingStatus\": \"not_charging\"\n}"
+              "raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"batteryLevel\": 85.5,\n  \"voltage\": 400.2,\n  \"temperature\": 32.1,\n  \"cycleCount\": 245,\n  \"healthPercentage\": 92.3,\n  \"chargingStatus\": \"not_charging\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/battery/log",
@@ -329,20 +460,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/battery/:vehicleId/history?limit=50",
+              "raw": "{{baseUrl}}/api/battery/{{vehicleId}}/history?limit=50",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "battery", ":vehicleId", "history"],
+              "path": ["api", "battery", "{{vehicleId}}", "history"],
               "query": [
                 {
                   "key": "limit",
                   "value": "50"
-                }
-              ],
-              "variable": [
-                {
-                  "key": "vehicleId",
-                  "value": "YOUR_VEHICLE_ID_HERE",
-                  "description": "Replace with actual vehicle ID"
                 }
               ]
             },
@@ -372,7 +496,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"vehicleId\": \"YOUR_VEHICLE_ID_HERE\",\n  \"stationId\": \"STATION_001\",\n  \"location\": {\n    \"latitude\": 37.7749,\n    \"longitude\": -122.4194\n  },\n  \"chargingType\": \"fast\",\n  \"powerRating\": 150.0\n}"
+              "raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"chargerId\": \"STATION_001\",\n  \"location\": \"San Francisco, CA\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/charging/start",
@@ -381,6 +505,23 @@
             },
             "description": "Start a new charging session"
           },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.sessionId) {",
+                  "        pm.collectionVariables.set('sessionId', response.sessionId);",
+                  "        console.log('Session ID saved:', response.sessionId);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "response": []
         },
         {
@@ -400,7 +541,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sessionId\": \"YOUR_SESSION_ID_HERE\",\n  \"finalBatteryLevel\": 95.2,\n  \"energyConsumed\": 42.5,\n  \"cost\": 12.75\n}"
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\",\n  \"energyKWh\": 42.5,\n  \"cost\": 12.75\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/charging/end",
@@ -423,14 +564,27 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/charging/:vehicleId/history",
+              "raw": "{{baseUrl}}/api/charging/history/{{vehicleId}}?page=1&limit=20",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "charging", ":vehicleId", "history"],
-              "variable": [
+              "path": ["api", "charging", "history", "{{vehicleId}}"],
+              "query": [
                 {
-                  "key": "vehicleId",
-                  "value": "YOUR_VEHICLE_ID_HERE",
-                  "description": "Replace with actual vehicle ID"
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31",
+                  "disabled": true
                 }
               ]
             },
@@ -444,7 +598,7 @@
       "name": "Ownership Management",
       "item": [
         {
-          "name": "Transfer Vehicle Ownership",
+          "name": "Initiate Transfer",
           "request": {
             "method": "POST",
             "header": [
@@ -460,14 +614,52 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"vehicleId\": \"YOUR_VEHICLE_ID_HERE\",\n  \"newOwnerEmail\": \"newowner@example.com\",\n  \"transferReason\": \"sale\"\n}"
+              "raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"newOwnerEmail\": \"newowner@example.com\",\n  \"transferReason\": \"sale\",\n  \"salePrice\": 45000,\n  \"notes\": \"Vehicle sold in excellent condition\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/ownership/transfer",
+              "raw": "{{baseUrl}}/api/ownership/initiate",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "ownership", "transfer"]
+              "path": ["api", "ownership", "initiate"]
             },
-            "description": "Transfer vehicle ownership to another user"
+            "description": "Initiate a vehicle ownership transfer"
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transferId\": \"{{transferId}}\",\n  \"approved\": true,\n  \"notes\": \"Transfer approved by new owner\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ownership/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ownership", "approve"]
+            },
+            "description": "Approve or reject a pending ownership transfer"
           },
           "response": []
         },
@@ -483,16 +675,9 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/ownership/:vehicleId/history",
+              "raw": "{{baseUrl}}/api/ownership/history/{{vehicleId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "ownership", ":vehicleId", "history"],
-              "variable": [
-                {
-                  "key": "vehicleId",
-                  "value": "YOUR_VEHICLE_ID_HERE",
-                  "description": "Replace with actual vehicle ID"
-                }
-              ]
+              "path": ["api", "ownership", "history", "{{vehicleId}}"]
             },
             "description": "Get ownership transfer history for a vehicle"
           },
@@ -503,6 +688,78 @@
     {
       "name": "Alerts & Notifications",
       "item": [
+        {
+          "name": "Create Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"type\": \"battery_health\",\n  \"severity\": \"warning\",\n  \"message\": \"Battery health has decreased below 90%\",\n  \"metadata\": {\n    \"currentHealth\": 88.5,\n    \"previousHealth\": 91.2,\n    \"threshold\": 90.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts"]
+            },
+            "description": "Create a new alert for a vehicle"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Alerts by Vehicle",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/vehicle/{{vehicleId}}?status=active&severity=warning&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", "vehicle", "{{vehicleId}}"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                },
+                {
+                  "key": "severity",
+                  "value": "warning",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get alerts for a specific vehicle with filtering options"
+          },
+          "response": []
+        },
         {
           "name": "Get User Alerts",
           "request": {
@@ -534,9 +791,9 @@
           "response": []
         },
         {
-          "name": "Mark Alert as Read",
+          "name": "Update Alert Status",
           "request": {
-            "method": "PUT",
+            "method": "PATCH",
             "header": [
               {
                 "key": "Authorization",
@@ -550,21 +807,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"status\": \"read\"\n}"
+              "raw": "{\n  \"status\": \"acknowledged\",\n  \"resolution\": \"Battery health monitored, maintenance scheduled\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
-              "raw": "{{baseUrl}}/api/alerts/:alertId",
+              "raw": "{{baseUrl}}/api/alerts/{{alertId}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "alerts", ":alertId"],
-              "variable": [
-                {
-                  "key": "alertId",
-                  "value": "YOUR_ALERT_ID_HERE",
-                  "description": "Replace with actual alert ID"
-                }
-              ]
+                "path": ["api", "alerts", "{{alertId}}"]
             },
-            "description": "Mark an alert as read"
+            "description": "Update alert status and resolution"
           },
           "response": []
         }
@@ -573,6 +828,86 @@
     {
       "name": "Analytics & Reports",
       "item": [
+        {
+          "name": "Vehicle Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/vehicle/{{vehicleId}}/summary?period=30d",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "vehicle", "{{vehicleId}}", "summary"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30d"
+                }
+              ]
+            },
+            "description": "Get comprehensive analytics summary for a vehicle"
+          },
+          "response": []
+        },
+        {
+          "name": "Battery Health Trends",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/battery/trends?vehicleId={{vehicleId}}&period=90d&granularity=daily",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "battery", "trends"],
+              "query": [
+                {
+                  "key": "vehicleId",
+                  "value": "{{vehicleId}}"
+                },
+                {
+                  "key": "period",
+                  "value": "90d"
+                },
+                {
+                  "key": "granularity",
+                  "value": "daily"
+                }
+              ]
+            },
+            "description": "Get battery health trends over time"
+          },
+          "response": []
+        },
+        {
+          "name": "Fleet Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/fleet/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "fleet", "overview"]
+            },
+            "description": "Get overview of all vehicles owned by the user"
+          },
+          "response": []
+        },
         {
           "name": "Get Vehicle Analytics",
           "request": {
@@ -597,7 +932,7 @@
               "variable": [
                 {
                   "key": "vehicleId",
-                  "value": "YOUR_VEHICLE_ID_HERE",
+                  "value": "{{vehicleId}}",
                   "description": "Replace with actual vehicle ID"
                 }
               ]
@@ -638,6 +973,39 @@
       "name": "Blockchain Integration",
       "item": [
         {
+          "name": "Record Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleId\": \"{{vehicleId}}\",\n  \"transactionType\": \"battery_health_update\",\n  \"data\": {\n    \"stateOfHealth\": 95.8,\n    \"cycleCount\": 245,\n    \"temperature\": 24.5,\n    \"timestamp\": \"2024-01-15T10:30:00Z\"\n  },\n  \"metadata\": {\n    \"source\": \"vehicle_telematics\",\n    \"version\": \"1.0\",\n    \"location\": {\n      \"latitude\": 40.7128,\n      \"longitude\": -74.0060\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/blockchain/record",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blockchain", "record"]
+            },
+            "description": "Record a new blockchain transaction for vehicle data"
+          },
+          "response": []
+        },
+        {
           "name": "Get Transaction History",
           "request": {
             "method": "GET",
@@ -668,6 +1036,56 @@
           "response": []
         },
         {
+          "name": "Get Vehicle Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blockchain/vehicle/{{vehicleId}}/transactions?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blockchain", "vehicle", "{{vehicleId}}", "transactions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Get all blockchain transactions for a specific vehicle"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Blockchain Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/blockchain/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "blockchain", "stats"]
+            },
+            "description": "Get blockchain statistics and metrics"
+          },
+          "response": []
+        },
+        {
           "name": "Verify Transaction",
           "request": {
             "method": "GET",
@@ -685,7 +1103,7 @@
               "variable": [
                 {
                   "key": "txId",
-                  "value": "YOUR_TX_ID_HERE",
+                  "value": "{{txId}}",
                   "description": "Replace with actual transaction ID"
                 }
               ]

@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>multi-brand-architecture-flowchart.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="multi-brand-electric-vehicle-software-architecture">Multi-Brand Electric Vehicle Software Architecture</h1>
+<h2 id="production-ready-adaptable-architecture-for-multiple-automotive-brands">Production-Ready Adaptable Architecture for Multiple Automotive Brands</h2>
+<p>This document outlines the comprehensive architecture flowchart for an electric vehicle software platform that can be customized for multiple automotive brands while maintaining simplicity and efficiency.</p>
+<hr>
+<h2 id="system-overview-architecture">System Overview Architecture</h2>
+<pre><code class="language-mermaid"><div class="mermaid">graph TB
+    subgraph "Brand Configuration Layer"
+        BC[Brand Configuration Manager]
+        BT[Brand Theme Engine]
+        BR[Brand Business Rules]
+        BC --> BT
+        BC --> BR
+    end
+
+    subgraph "Multi-Tenant Gateway"
+        AG[API Gateway with Brand Routing]
+        AUTH[Multi-Brand Authentication]
+        LB[Load Balancer]
+        LB --> AG
+        AG --> AUTH
+    end
+
+    subgraph "Core Application Services"
+        BS[Battery Service]
+        TS[Telemetry Service]
+        PS[Passport Service]
+        DS[Decision Engine Service]
+        IS[IoT Integration Service]
+    end
+
+    subgraph "Brand-Specific Processing Layer"
+        BSL[Brand-Specific Logic Router]
+        BVL[Brand Validation Layer]
+        BCL[Brand Compliance Engine]
+        BSL --> BVL
+        BSL --> BCL
+    end
+
+    subgraph "Data & Storage Layer"
+        MTD[(Multi-Tenant Database)]
+        BC_STORE[(Brand Configuration Store)]
+        CACHE[(Redis Cache)]
+        BFS[(Brand File Storage)]
+    end
+
+    subgraph "Blockchain & External Integration"
+        BCH[Blockchain Service]
+        MQTT[MQTT Broker]
+        EXT[External APIs]
+        REG[Regulatory Services]
+    end
+
+    subgraph "Mobile & Frontend"
+        MBA[Multi-Brand Mobile App]
+        BWD[Brand Web Dashboard]
+        API_DOC[Brand-Specific API Docs]
+    end
+
+    %% Connections
+    BC --> AG
+    AUTH --> BSL
+    AG --> BS
+    AG --> TS
+    AG --> PS
+    AG --> DS
+    AG --> IS
+
+    BS --> BSL
+    TS --> BSL
+    PS --> BSL
+    DS --> BSL
+    IS --> BSL
+
+    BSL --> MTD
+    BC --> BC_STORE
+    BSL --> CACHE
+
+    BS --> BCH
+    TS --> MQTT
+    DS --> EXT
+    BCL --> REG
+
+    MBA --> AG
+    BWD --> AG
+    API_DOC --> AG
+
+    style BC fill:#e1f5fe
+    style BSL fill:#f3e5f5
+    style MTD fill:#fff3e0
+    style MBA fill:#e8f5e8
+</div></code></pre>
+<hr>
+<h2 id="brand-configuration-flow">Brand Configuration Flow</h2>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart TD
+    START([New Brand Onboarding])
+    
+    subgraph "Brand Setup Process"
+        BRC[Brand Registration & Config]
+        BSC[Brand-Specific Schema Creation]
+        BTH[Brand Theme Configuration]
+        BBR[Brand Business Rules Setup]
+        BIC[Brand Integration Configuration]
+    end
+    
+    subgraph "Validation & Testing"
+        VAL[Configuration Validation]
+        TEST[Brand-Specific Testing]
+        SEC[Security & Compliance Check]
+    end
+    
+    subgraph "Deployment"
+        DEPLOY[Brand Environment Deployment]
+        DNS[Brand-Specific DNS Setup]
+        SSL[SSL Certificate Configuration]
+        MON[Monitoring & Logging Setup]
+    end
+    
+    READY([Brand Ready for Production])
+    
+    START --> BRC
+    BRC --> BSC
+    BSC --> BTH
+    BTH --> BBR
+    BBR --> BIC
+    
+    BIC --> VAL
+    VAL --> TEST
+    TEST --> SEC
+    
+    SEC --> DEPLOY
+    DEPLOY --> DNS
+    DNS --> SSL
+    SSL --> MON
+    
+    MON --> READY
+    
+    style START fill:#4caf50
+    style READY fill:#2196f3
+    style VAL fill:#ff9800
+    style SEC fill:#f44336
+</div></code></pre>
+<hr>
+<h2 id="multi-brand-request-processing-flow">Multi-Brand Request Processing Flow</h2>
+<pre><code class="language-mermaid"><div class="mermaid">sequenceDiagram
+    participant Client as Brand Client App
+    participant Gateway as API Gateway
+    participant Auth as Brand Auth Service
+    participant Config as Brand Config Manager
+    participant Service as Core Services
+    participant Logic as Brand Logic Router
+    participant DB as Multi-Tenant DB
+    participant Blockchain as Blockchain Service
+    
+    Client->>Gateway: API Request with Brand ID
+    Gateway->>Auth: Validate Brand Credentials
+    Auth->>Config: Get Brand Configuration
+    Config-->>Auth: Brand Config & Rules
+    Auth-->>Gateway: Authentication Result
+    
+    Gateway->>Service: Route to Core Service
+    Service->>Logic: Apply Brand-Specific Logic
+    Logic->>Config: Get Brand Business Rules
+    Config-->>Logic: Brand Rules & Validations
+    
+    Logic->>DB: Query with Brand Context
+    DB-->>Logic: Brand-Scoped Data
+    Logic->>Blockchain: Blockchain Operation (if needed)
+    Blockchain-->>Logic: Blockchain Response
+    
+    Logic-->>Service: Processed Result
+    Service-->>Gateway: Service Response
+    Gateway-->>Client: Brand-Customized Response
+</div></code></pre>
+<hr>
+<h2 id="technology-stack-architecture">Technology Stack Architecture</h2>
+<pre><code class="language-mermaid"><div class="mermaid">graph LR
+    subgraph "Frontend Technologies"
+        RN[React Native/Expo]
+        RW[React Web]
+        TS_FE[TypeScript]
+        RDX[Redux Toolkit]
+    end
+    
+    subgraph "Backend Technologies"
+        NODE[Node.js 20+]
+        EXP[Express.js]
+        TS_BE[TypeScript]
+        JWT[JWT Authentication]
+    end
+    
+    subgraph "Database Technologies"
+        MONGO[MongoDB 6.0+]
+        REDIS[Redis 7+]
+        POSTGRES[PostgreSQL 15+]
+    end
+    
+    subgraph "Blockchain Technologies"
+        ETH[Ethereum]
+        ETHERS[Ethers.js v6]
+        HARDHAT[Hardhat]
+        SOL[Solidity 0.8+]
+    end
+    
+    subgraph "Infrastructure Technologies"
+        DOCKER[Docker & Docker Compose]
+        K8S[Kubernetes]
+        NGINX[NGINX Load Balancer]
+        AWS[AWS/Azure Cloud]
+    end
+    
+    subgraph "Integration Technologies"
+        MQTT_TECH[MQTT Broker]
+        REST[REST APIs]
+        WS[WebSocket]
+        GRPC[gRPC]
+    end
+    
+    subgraph "DevOps Technologies"
+        GHA[GitHub Actions]
+        PROM[Prometheus]
+        GRAF[Grafana]
+        ELASTIC[ELK Stack]
+    end
+    
+    RN --> NODE
+    RW --> NODE
+    NODE --> MONGO
+    NODE --> REDIS
+    NODE --> ETH
+    DOCKER --> K8S
+    K8S --> AWS
+    NODE --> MQTT_TECH
+    
+    style NODE fill:#8bc34a
+    style ETH fill:#627eea
+    style DOCKER fill:#0db7ed
+    style K8S fill:#326ce5
+</div></code></pre>
+<hr>
+<h2 id="brand-customization-layers">Brand Customization Layers</h2>
+<pre><code class="language-mermaid"><div class="mermaid">graph TD
+    subgraph "Presentation Layer Customization"
+        UI_THEME[UI Themes & Branding]
+        COMP_LIB[Brand Component Library]
+        LAYOUT[Brand-Specific Layouts]
+    end
+    
+    subgraph "Business Logic Customization"
+        WORKFLOW[Brand Workflows]
+        VALIDATION[Brand Validation Rules]
+        COMPLIANCE[Brand Compliance Rules]
+        INTEGRATION[Brand Integration Logic]
+    end
+    
+    subgraph "Data Layer Customization"
+        SCHEMA[Brand Data Schema]
+        FIELDS[Custom Fields]
+        RELATIONSHIPS[Brand Relationships]
+    end
+    
+    subgraph "Configuration Management"
+        ENV_CONFIG[Environment Configuration]
+        FEATURE_FLAGS[Feature Flags]
+        BRAND_SETTINGS[Brand-Specific Settings]
+        DEPLOYMENT[Deployment Configuration]
+    end
+    
+    UI_THEME --> WORKFLOW
+    COMP_LIB --> VALIDATION
+    LAYOUT --> COMPLIANCE
+    
+    WORKFLOW --> SCHEMA
+    VALIDATION --> FIELDS
+    COMPLIANCE --> RELATIONSHIPS
+    INTEGRATION --> FIELDS
+    
+    SCHEMA --> ENV_CONFIG
+    FIELDS --> FEATURE_FLAGS
+    RELATIONSHIPS --> BRAND_SETTINGS
+    
+    ENV_CONFIG --> DEPLOYMENT
+    FEATURE_FLAGS --> DEPLOYMENT
+    BRAND_SETTINGS --> DEPLOYMENT
+    
+    style UI_THEME fill:#e3f2fd
+    style WORKFLOW fill:#f3e5f5
+    style SCHEMA fill:#fff3e0
+    style ENV_CONFIG fill:#e8f5e8
+</div></code></pre>
+<hr>
+<h2 id="production-deployment-architecture">Production Deployment Architecture</h2>
+<pre><code class="language-mermaid"><div class="mermaid">graph TB
+    subgraph "Load Balancer Tier"
+        ALB[Application Load Balancer]
+        CF[CloudFront CDN]
+        WAF[Web Application Firewall]
+    end
+    
+    subgraph "Application Tier - Brand A"
+        APP_A1[Brand A - App Instance 1]
+        APP_A2[Brand A - App Instance 2]
+        APP_A3[Brand A - App Instance 3]
+    end
+    
+    subgraph "Application Tier - Brand B"
+        APP_B1[Brand B - App Instance 1]
+        APP_B2[Brand B - App Instance 2]
+    end
+    
+    subgraph "Shared Services Tier"
+        AUTH_SVC[Authentication Service]
+        CONFIG_SVC[Configuration Service]
+        BLOCKCHAIN_SVC[Blockchain Service]
+        MONITOR_SVC[Monitoring Service]
+    end
+    
+    subgraph "Data Tier"
+        DB_CLUSTER[(Database Cluster)]
+        CACHE_CLUSTER[(Redis Cluster)]
+        STORAGE[(Object Storage)]
+    end
+    
+    subgraph "External Integration Tier"
+        BLOCKCHAIN_NET[Blockchain Network]
+        MQTT_CLUSTER[MQTT Cluster]
+        EXTERNAL_APIs[External APIs]
+    end
+    
+    CF --> ALB
+    WAF --> ALB
+    ALB --> APP_A1
+    ALB --> APP_A2
+    ALB --> APP_A3
+    ALB --> APP_B1
+    ALB --> APP_B2
+    
+    APP_A1 --> AUTH_SVC
+    APP_A2 --> CONFIG_SVC
+    APP_A3 --> BLOCKCHAIN_SVC
+    APP_B1 --> AUTH_SVC
+    APP_B2 --> MONITOR_SVC
+    
+    AUTH_SVC --> DB_CLUSTER
+    CONFIG_SVC --> CACHE_CLUSTER
+    BLOCKCHAIN_SVC --> BLOCKCHAIN_NET
+    
+    APP_A1 --> MQTT_CLUSTER
+    APP_B1 --> EXTERNAL_APIs
+    
+    style ALB fill:#ff9800
+    style APP_A1 fill:#4caf50
+    style APP_B1 fill:#2196f3
+    style DB_CLUSTER fill:#9c27b0
+</div></code></pre>
+<hr>
+<h2 id="data-flow-for-multi-brand-operations">Data Flow for Multi-Brand Operations</h2>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart LR
+    subgraph "Data Ingestion"
+        IOT[IoT Sensors]
+        MOBILE[Mobile Apps]
+        WEB[Web Portals]
+        API[External APIs]
+    end
+    
+    subgraph "Brand Processing Pipeline"
+        ROUTER[Brand Router]
+        VALIDATOR[Brand Validator]
+        TRANSFORMER[Data Transformer]
+        ENRICHER[Data Enricher]
+    end
+    
+    subgraph "Core Processing"
+        BATTERY_PROC[Battery Processing]
+        TELEMETRY_PROC[Telemetry Processing]
+        DECISION_PROC[Decision Processing]
+        BLOCKCHAIN_PROC[Blockchain Processing]
+    end
+    
+    subgraph "Brand-Specific Output"
+        BRAND_A_DB[(Brand A Database)]
+        BRAND_B_DB[(Brand B Database)]
+        SHARED_BLOCKCHAIN[(Shared Blockchain)]
+        BRAND_A_API[Brand A APIs]
+        BRAND_B_API[Brand B APIs]
+    end
+    
+    IOT --> ROUTER
+    MOBILE --> ROUTER
+    WEB --> ROUTER
+    API --> ROUTER
+    
+    ROUTER --> VALIDATOR
+    VALIDATOR --> TRANSFORMER
+    TRANSFORMER --> ENRICHER
+    
+    ENRICHER --> BATTERY_PROC
+    ENRICHER --> TELEMETRY_PROC
+    ENRICHER --> DECISION_PROC
+    ENRICHER --> BLOCKCHAIN_PROC
+    
+    BATTERY_PROC --> BRAND_A_DB
+    BATTERY_PROC --> BRAND_B_DB
+    TELEMETRY_PROC --> BRAND_A_DB
+    TELEMETRY_PROC --> BRAND_B_DB
+    BLOCKCHAIN_PROC --> SHARED_BLOCKCHAIN
+    
+    BRAND_A_DB --> BRAND_A_API
+    BRAND_B_DB --> BRAND_B_API
+    SHARED_BLOCKCHAIN --> BRAND_A_API
+    SHARED_BLOCKCHAIN --> BRAND_B_API
+    
+    style ROUTER fill:#ff9800
+    style VALIDATOR fill:#4caf50
+    style BRAND_A_DB fill:#e3f2fd
+    style BRAND_B_DB fill:#f3e5f5
+</div></code></pre>
+<hr>
+<h2 id="security--compliance-architecture">Security &amp; Compliance Architecture</h2>
+<pre><code class="language-mermaid"><div class="mermaid">graph TD
+    subgraph "Security Layers"
+        EDGE_SEC[Edge Security - WAF/DDoS]
+        NET_SEC[Network Security - VPC/Firewall]
+        APP_SEC[Application Security - OAuth/JWT]
+        DATA_SEC[Data Security - Encryption at Rest/Transit]
+    end
+    
+    subgraph "Brand Isolation"
+        TENANT_ISO[Multi-Tenant Isolation]
+        DATA_ISO[Data Isolation by Brand]
+        PROC_ISO[Process Isolation]
+        NET_ISO[Network Isolation]
+    end
+    
+    subgraph "Compliance Framework"
+        GDPR[GDPR Compliance]
+        CCPA[CCPA Compliance]
+        ISO27001[ISO 27001]
+        SOC2[SOC 2 Type II]
+        AUTO_COMP[Automotive Compliance]
+    end
+    
+    subgraph "Monitoring & Auditing"
+        SEC_MON[Security Monitoring]
+        AUDIT_LOG[Audit Logging]
+        THREAT_DET[Threat Detection]
+        INCIDENT_RESP[Incident Response]
+    end
+    
+    EDGE_SEC --> NET_SEC
+    NET_SEC --> APP_SEC
+    APP_SEC --> DATA_SEC
+    
+    DATA_SEC --> TENANT_ISO
+    TENANT_ISO --> DATA_ISO
+    DATA_ISO --> PROC_ISO
+    PROC_ISO --> NET_ISO
+    
+    NET_ISO --> GDPR
+    GDPR --> CCPA
+    CCPA --> ISO27001
+    ISO27001 --> SOC2
+    SOC2 --> AUTO_COMP
+    
+    AUTO_COMP --> SEC_MON
+    SEC_MON --> AUDIT_LOG
+    AUDIT_LOG --> THREAT_DET
+    THREAT_DET --> INCIDENT_RESP
+    
+    style EDGE_SEC fill:#f44336
+    style TENANT_ISO fill:#ff9800
+    style GDPR fill:#4caf50
+    style SEC_MON fill:#2196f3
+</div></code></pre>
+<hr>
+<h2 id="performance--scalability-architecture">Performance &amp; Scalability Architecture</h2>
+<pre><code class="language-mermaid"><div class="mermaid">graph LR
+    subgraph "Caching Strategy"
+        CDN[Content Delivery Network]
+        APP_CACHE[Application Cache]
+        DB_CACHE[Database Cache]
+        REDIS_CACHE[Redis Cache Cluster]
+    end
+    
+    subgraph "Scalability Patterns"
+        HORIZONTAL[Horizontal Scaling]
+        VERTICAL[Vertical Scaling]
+        AUTO_SCALE[Auto Scaling Groups]
+        LOAD_BALANCE[Load Balancing]
+    end
+    
+    subgraph "Performance Optimization"
+        DB_OPT[Database Optimization]
+        QUERY_OPT[Query Optimization]
+        CONNECTION_POOL[Connection Pooling]
+        ASYNC_PROC[Async Processing]
+    end
+    
+    subgraph "Monitoring & Metrics"
+        APM[Application Performance Monitoring]
+        METRICS[Custom Metrics]
+        ALERTS[Smart Alerting]
+        DASHBOARDS[Performance Dashboards]
+    end
+    
+    CDN --> HORIZONTAL
+    APP_CACHE --> AUTO_SCALE
+    DB_CACHE --> LOAD_BALANCE
+    REDIS_CACHE --> VERTICAL
+    
+    HORIZONTAL --> DB_OPT
+    AUTO_SCALE --> QUERY_OPT
+    LOAD_BALANCE --> CONNECTION_POOL
+    VERTICAL --> ASYNC_PROC
+    
+    DB_OPT --> APM
+    QUERY_OPT --> METRICS
+    CONNECTION_POOL --> ALERTS
+    ASYNC_PROC --> DASHBOARDS
+    
+    style CDN fill:#4caf50
+    style AUTO_SCALE fill:#ff9800
+    style DB_OPT fill:#2196f3
+    style APM fill:#9c27b0
+</div></code></pre>
+<hr>
+<h2 id="development--deployment-pipeline">Development &amp; Deployment Pipeline</h2>
+<pre><code class="language-mermaid"><div class="mermaid">flowchart TD
+    subgraph "Development Phase"
+        DEV_LOCAL[Local Development]
+        FEATURE_BRANCH[Feature Branch Development]
+        CODE_REVIEW[Code Review Process]
+        UNIT_TESTS[Unit Testing]
+    end
+    
+    subgraph "CI/CD Pipeline"
+        BUILD[Build Process]
+        INTEGRATION_TESTS[Integration Testing]
+        SECURITY_SCAN[Security Scanning]
+        BRAND_VALIDATION[Brand Configuration Validation]
+    end
+    
+    subgraph "Staging Environment"
+        STAGING_DEPLOY[Staging Deployment]
+        E2E_TESTS[End-to-End Testing]
+        PERFORMANCE_TESTS[Performance Testing]
+        UAT[User Acceptance Testing]
+    end
+    
+    subgraph "Production Deployment"
+        BLUE_GREEN[Blue-Green Deployment]
+        CANARY[Canary Releases]
+        ROLLBACK[Automated Rollback]
+        MONITORING[Production Monitoring]
+    end
+    
+    DEV_LOCAL --> FEATURE_BRANCH
+    FEATURE_BRANCH --> CODE_REVIEW
+    CODE_REVIEW --> UNIT_TESTS
+    
+    UNIT_TESTS --> BUILD
+    BUILD --> INTEGRATION_TESTS
+    INTEGRATION_TESTS --> SECURITY_SCAN
+    SECURITY_SCAN --> BRAND_VALIDATION
+    
+    BRAND_VALIDATION --> STAGING_DEPLOY
+    STAGING_DEPLOY --> E2E_TESTS
+    E2E_TESTS --> PERFORMANCE_TESTS
+    PERFORMANCE_TESTS --> UAT
+    
+    UAT --> BLUE_GREEN
+    BLUE_GREEN --> CANARY
+    CANARY --> ROLLBACK
+    ROLLBACK --> MONITORING
+    
+    style DEV_LOCAL fill:#4caf50
+    style BUILD fill:#ff9800
+    style STAGING_DEPLOY fill:#2196f3
+    style BLUE_GREEN fill:#9c27b0
+</div></code></pre>
+<hr>
+<h2 id="key-architecture-benefits">Key Architecture Benefits</h2>
+<h3 id="%F0%9F%9A%80-scalability">🚀 <strong>Scalability</strong></h3>
+<ul>
+<li><strong>Horizontal scaling</strong> for each brand independently</li>
+<li><strong>Auto-scaling</strong> based on brand-specific traffic patterns</li>
+<li><strong>Load balancing</strong> with brand-aware routing</li>
+</ul>
+<h3 id="%F0%9F%94%92-security">🔒 <strong>Security</strong></h3>
+<ul>
+<li><strong>Multi-tenant isolation</strong> ensuring brand data separation</li>
+<li><strong>End-to-end encryption</strong> for all data transmissions</li>
+<li><strong>Compliance framework</strong> supporting multiple regulations</li>
+</ul>
+<h3 id="%E2%9A%A1-performance">⚡ <strong>Performance</strong></h3>
+<ul>
+<li><strong>CDN integration</strong> for global content delivery</li>
+<li><strong>Caching strategies</strong> at multiple levels</li>
+<li><strong>Async processing</strong> for heavy operations</li>
+</ul>
+<h3 id="%F0%9F%9B%A0%EF%B8%8F-maintainability">🛠️ <strong>Maintainability</strong></h3>
+<ul>
+<li><strong>Modular architecture</strong> allowing independent updates</li>
+<li><strong>Configuration-driven</strong> brand customization</li>
+<li><strong>Automated testing</strong> for multi-brand scenarios</li>
+</ul>
+<h3 id="%F0%9F%92%B0-cost-efficiency">💰 <strong>Cost Efficiency</strong></h3>
+<ul>
+<li><strong>Shared infrastructure</strong> for common services</li>
+<li><strong>Resource optimization</strong> per brand requirements</li>
+<li><strong>Pay-per-use</strong> scaling model</li>
+</ul>
+<hr>
+<h2 id="implementation-guidelines">Implementation Guidelines</h2>
+<h3 id="phase-1-foundation-weeks-1-4">Phase 1: Foundation (Weeks 1-4)</h3>
+<ol>
+<li>Set up multi-tenant database architecture</li>
+<li>Implement brand configuration management</li>
+<li>Create API gateway with brand routing</li>
+<li>Establish security and authentication framework</li>
+</ol>
+<h3 id="phase-2-core-services-weeks-5-8">Phase 2: Core Services (Weeks 5-8)</h3>
+<ol>
+<li>Develop brand-specific business logic layer</li>
+<li>Implement data processing pipeline</li>
+<li>Create blockchain integration layer</li>
+<li>Build monitoring and logging infrastructure</li>
+</ol>
+<h3 id="phase-3-user-interface-weeks-9-12">Phase 3: User Interface (Weeks 9-12)</h3>
+<ol>
+<li>Develop brand-aware mobile applications</li>
+<li>Create customizable web dashboards</li>
+<li>Implement theme and branding system</li>
+<li>Build brand-specific API documentation</li>
+</ol>
+<h3 id="phase-4-testing--deployment-weeks-13-16">Phase 4: Testing &amp; Deployment (Weeks 13-16)</h3>
+<ol>
+<li>Comprehensive testing across all brands</li>
+<li>Performance optimization and load testing</li>
+<li>Security penetration testing</li>
+<li>Production deployment and go-live</li>
+</ol>
+<hr>
+<p>This architecture provides a <strong>production-ready, scalable, and maintainable</strong> solution for multiple automotive brands while ensuring <strong>simplicity in operation</strong> and <strong>efficiency in resource utilization</strong>.</p>
+
+</body>
+</html>

@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #013734 0%, #015c4f 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -34,7 +34,7 @@
         }
 
         .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #013734 0%, #015c4f 100%);
             color: white;
             padding: 20px;
             text-align: center;
@@ -97,7 +97,7 @@
         }
 
         .message.user {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #013734 0%, #015c4f 100%);
             color: white;
             align-self: flex-end;
             margin-left: auto;
@@ -166,11 +166,11 @@
 
         .chat-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #013734;
         }
 
         .send-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #013734 0%, #015c4f 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -186,7 +186,7 @@
 
         .send-button:hover:not(:disabled) {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(1, 55, 52, 0.4);
         }
 
         .send-button:disabled {
@@ -232,6 +232,210 @@
             font-size: 14px;
         }
 
+        /* Overlay Styles */
+        .overlay-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .overlay-toggle {
+            background: linear-gradient(135deg, #013734 0%, #015c4f 100%);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(1, 55, 52, 0.4);
+            transition: all 0.3s ease;
+            font-size: 24px;
+        }
+
+        .overlay-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(1, 55, 52, 0.6);
+        }
+
+        .overlay-toggle.active {
+            transform: rotate(45deg);
+        }
+
+        .overlay-panel {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            padding: 20px;
+            min-width: 280px;
+            max-width: 320px;
+            transform: translateY(20px) scale(0.9);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+        .overlay-panel.active {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .overlay-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .overlay-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #013734 0%, #015c4f 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .overlay-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #334155;
+            margin: 0;
+        }
+
+        .overlay-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .overlay-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #334155;
+            margin: 0;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .overlay-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .overlay-status.offline {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .overlay-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        .overlay-status.offline .overlay-status-dot {
+            background: #ef4444;
+        }
+
+        .overlay-status-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #166534;
+        }
+
+        .overlay-status.offline .overlay-status-text {
+            color: #dc2626;
+        }
+
+        .overlay-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .overlay-button {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #475569;
+        }
+
+        .overlay-button:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .overlay-button.primary {
+            background: linear-gradient(135deg, #013734 0%, #015c4f 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .overlay-button.primary:hover {
+            background: linear-gradient(135deg, #02453f 0%, #016a5c 100%);
+        }
+
+        .overlay-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .overlay-version {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
         @media (max-width: 768px) {
             .chat-container {
                 height: 90vh;
@@ -244,6 +448,24 @@
             
             .status-indicator {
                 display: none;
+            }
+
+            .overlay-container {
+                bottom: 15px;
+                right: 15px;
+            }
+
+            .overlay-toggle {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .overlay-panel {
+                bottom: 60px;
+                min-width: 260px;
+                max-width: calc(100vw - 40px);
+                right: -10px;
             }
         }
     </style>
@@ -292,6 +514,58 @@
         </div>
     </div>
 
+    <!-- Overlay Component -->
+    <div class="overlay-container">
+        <div class="overlay-panel" id="overlayPanel">
+            <div class="overlay-header">
+                <div class="overlay-logo">🚗</div>
+                <div>
+                    <h3 class="overlay-title">FlexiEV Assistant</h3>
+                    <p class="overlay-subtitle">v1.0.0 • Production</p>
+                </div>
+            </div>
+            
+            <div class="overlay-stats">
+                <div class="stat-item">
+                    <p class="stat-value" id="messageCount">0</p>
+                    <p class="stat-label">Messages</p>
+                </div>
+                <div class="stat-item">
+                    <p class="stat-value" id="sessionTime">0m</p>
+                    <p class="stat-label">Session</p>
+                </div>
+            </div>
+            
+            <div class="overlay-status" id="overlayStatus">
+                <div class="overlay-status-dot"></div>
+                <span class="overlay-status-text">Connected to Groq API</span>
+            </div>
+            
+            <div class="overlay-actions">
+                <button class="overlay-button primary" onclick="overlayActions.clearChat()">
+                    🗑️ Clear Chat
+                </button>
+                <button class="overlay-button" onclick="overlayActions.downloadChat()">
+                    📥 Download Chat
+                </button>
+                <button class="overlay-button" onclick="overlayActions.refreshHealth()">
+                    🔄 Check Status
+                </button>
+                <button class="overlay-button" onclick="overlayActions.openPostman()">
+                    📋 View API Docs
+                </button>
+            </div>
+            
+            <div class="overlay-footer">
+                <p class="overlay-version">Powered by Groq • Llama3-8B Model</p>
+            </div>
+        </div>
+        
+        <button class="overlay-toggle" id="overlayToggle">
+            ⚙️
+        </button>
+    </div>
+
     <script>
         class EVChatApp {
             constructor() {
@@ -302,9 +576,13 @@
                 
                 this.baseURL = 'http://localhost:4500'; // Update if backend is hosted elsewhere
                 this.isTyping = false;
+                this.messageCount = 0;
+                this.sessionStartTime = Date.now();
                 
                 this.initEventListeners();
                 this.checkServerHealth();
+                this.initOverlay();
+                this.startSessionTimer();
             }
             
             initEventListeners() {
@@ -340,13 +618,16 @@
                     
                     if (data.status === 'healthy') {
                         console.log('✅ Server status:', data.status);
+                        this.updateOverlayStatus(true, `Connected • ${data.model || 'Groq API'}`);
                     } else {
                         console.error('❌ Server health check failed:', data);
                         this.showError(`Server issue: ${data.error}. ${data.details || ''}`);
+                        this.updateOverlayStatus(false, data.error || 'Server Error');
                     }
                 } catch (error) {
                     console.error('❌ Server health check failed:', error);
                     this.showError('Unable to connect to the server. Please check if the service is running on port 4500.');
+                    this.updateOverlayStatus(false, 'Connection Failed');
                 }
             }
             
@@ -410,6 +691,12 @@
                 
                 this.chatMessages.appendChild(messageDiv);
                 this.scrollToBottom();
+                
+                // Update message count
+                if (sender === 'user' || sender === 'assistant') {
+                    this.messageCount++;
+                    this.updateOverlayStats();
+                }
             }
             
             showTyping() {
@@ -453,12 +740,178 @@
             scrollToBottom() {
                 this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
             }
+
+            // Overlay functionality
+            initOverlay() {
+                const overlayToggle = document.getElementById('overlayToggle');
+                const overlayPanel = document.getElementById('overlayPanel');
+                
+                overlayToggle.addEventListener('click', () => {
+                    const isActive = overlayPanel.classList.contains('active');
+                    
+                    if (isActive) {
+                        overlayPanel.classList.remove('active');
+                        overlayToggle.classList.remove('active');
+                    } else {
+                        overlayPanel.classList.add('active');
+                        overlayToggle.classList.add('active');
+                        this.updateOverlayStats();
+                    }
+                });
+
+                // Close overlay when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.overlay-container')) {
+                        overlayPanel.classList.remove('active');
+                        overlayToggle.classList.remove('active');
+                    }
+                });
+            }
+
+            updateOverlayStats() {
+                document.getElementById('messageCount').textContent = this.messageCount;
+            }
+
+            startSessionTimer() {
+                setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - this.sessionStartTime) / 60000);
+                    document.getElementById('sessionTime').textContent = `${elapsed}m`;
+                }, 60000); // Update every minute
+            }
+
+            updateOverlayStatus(isHealthy, message = '') {
+                const overlayStatus = document.getElementById('overlayStatus');
+                const statusText = overlayStatus.querySelector('.overlay-status-text');
+                
+                if (isHealthy) {
+                    overlayStatus.classList.remove('offline');
+                    statusText.textContent = message || 'Connected to Groq API';
+                } else {
+                    overlayStatus.classList.add('offline');
+                    statusText.textContent = message || 'Connection Error';
+                }
+            }
         }
         
         // Initialize the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            new EVChatApp();
+            window.evChatApp = new EVChatApp();
         });
+
+        // Overlay action handlers
+        const overlayActions = {
+            clearChat() {
+                if (confirm('Are you sure you want to clear the chat history?')) {
+                    const chatMessages = document.getElementById('chatMessages');
+                    chatMessages.innerHTML = `
+                        <div class="welcome-message">
+                            <h2>Chat Cleared! 🧹</h2>
+                            <p>Your conversation history has been cleared.</p>
+                            <p>Ask me anything about Electric Vehicles in India!</p>
+                            <div class="brand-tags">
+                                <span class="brand-tag">Tata</span>
+                                <span class="brand-tag">Mahindra</span>
+                                <span class="brand-tag">MG Motor</span>
+                                <span class="brand-tag">Hyundai</span>
+                                <span class="brand-tag">Kia</span>
+                                <span class="brand-tag">BYD</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    if (window.evChatApp) {
+                        window.evChatApp.messageCount = 0;
+                        window.evChatApp.updateOverlayStats();
+                    }
+                }
+            },
+
+            downloadChat() {
+                try {
+                    const messages = document.querySelectorAll('.message:not(.typing)');
+                    let chatContent = `FlexiEV Chat Export - ${new Date().toLocaleString()}\n`;
+                    chatContent += '=' .repeat(50) + '\n\n';
+                    
+                    messages.forEach((msg, index) => {
+                        const sender = msg.classList.contains('user') ? 'You' : 'Assistant';
+                        const timestamp = new Date().toLocaleTimeString();
+                        chatContent += `[${timestamp}] ${sender}: ${msg.textContent}\n\n`;
+                    });
+                    
+                    chatContent += '\n' + '=' .repeat(50) + '\n';
+                    chatContent += 'Exported from FlexiEV Chat Assistant\n';
+                    chatContent += 'Powered by Groq • Llama3-8B Model';
+                    
+                    const blob = new Blob([chatContent], { type: 'text/plain' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `flexiev-chat-${new Date().toISOString().split('T')[0]}.txt`;
+                    a.click();
+                    
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Show success feedback
+                    const button = event.target;
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '✅ Downloaded';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('Download failed:', error);
+                    alert('Failed to download chat. Please try again.');
+                }
+            },
+
+            async refreshHealth() {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '🔄 Checking...';
+                button.disabled = true;
+                
+                try {
+                    if (window.evChatApp) {
+                        await window.evChatApp.checkServerHealth();
+                    }
+                    
+                    button.innerHTML = '✅ Updated';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('Health check failed:', error);
+                    button.innerHTML = '❌ Failed';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                }
+            },
+
+            openPostman() {
+                const postmanUrl = 'https://documenter.getpostman.com/view/flexiev-chat-api';
+                const fallbackUrl = 'http://localhost:4500/api/info';
+                
+                // Try to open Postman documentation first, fallback to API info
+                const newWindow = window.open(postmanUrl, '_blank');
+                if (!newWindow) {
+                    // If popup blocked, try the fallback
+                    window.open(fallbackUrl, '_blank');
+                }
+                
+                // Show feedback
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '📋 Opened';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                }, 2000);
+            }
+        };
     </script>
 </body>
 </html>

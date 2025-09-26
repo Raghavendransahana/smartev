@@ -1,0 +1,15 @@
+{
+  "network": "localhost",
+  "chainId": null,
+  "contract": "BatteryLifecycleTracker",
+  "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "deploymentTxHash": "0x27353e680c7b9f0527eb39c7eca9e9d97a2df3737a12cef289d9ac1d76817137",
+  "timestamp": "2025-09-26T15:56:08.834Z",
+  "roles": {
+    "manufacturer": [],
+    "auditor": [],
+    "recycler": [],
+    "station": []
+  }
+}

@@ -1,6 +1,16 @@
 import { Schema, Document, Model, model } from 'mongoose';
 
-export type TransactionType = 'battery' | 'charging' | 'ownership' | 'alert' | 'oem';
+export type OnChainTransactionType =
+  | 'passport'
+  | 'ownership'
+  | 'certification'
+  | 'lifecycle'
+  | 'secondLife'
+  | 'recycling'
+  | 'charging'
+  | 'warranty';
+
+export type TransactionType = OnChainTransactionType | 'alert' | 'battery';
 
 export interface IBlockchainTransaction {
   txId: string;
@@ -18,7 +28,22 @@ export interface IBlockchainTransactionModel extends Model<IBlockchainTransactio
 const blockchainTransactionSchema = new Schema<IBlockchainTransactionDocument, IBlockchainTransactionModel>(
   {
     txId: { type: String, required: true, unique: true },
-    type: { type: String, enum: ['battery', 'charging', 'ownership', 'alert', 'oem'], required: true },
+    type: {
+      type: String,
+      enum: [
+        'passport',
+        'ownership',
+        'certification',
+        'lifecycle',
+        'secondLife',
+        'recycling',
+        'charging',
+        'warranty',
+        'alert',
+        'battery'
+      ],
+      required: true
+    },
     status: { type: String, enum: ['pending', 'confirmed', 'failed'], default: 'confirmed' },
     payload: { type: Schema.Types.Mixed, required: true }
   },

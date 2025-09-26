@@ -76,8 +76,8 @@ const SettingsScreen: React.FC = () => {
               style={[screenStyles.picker, { color: theme.colors.text }]}
               dropdownIconColor={theme.colors.text}
             >
-              <Picker.Item label="Brand A (Tesla-inspired)" value="brandA" />
-              <Picker.Item label="Brand B (Rivian-inspired)" value="brandB" />
+              <Picker.Item label="Emerald Green Theme" value="brandA" />
+              <Picker.Item label="Deep Forest Green Theme" value="brandB" />
             </Picker>
           </View>
         </View>

@@ -32,42 +32,42 @@ const features: FeatureCard[] = [
     subtitle: 'View transactions',
     icon: 'link',
     screen: 'BlockchainExplorer',
-    color: '#8B5CF6',
+    color: '#059669', // Teal Green
   },
   {
     title: 'Analytics',
     subtitle: 'Insights & reports',
     icon: 'analytics',
     screen: 'Analytics',
-    color: '#06B6D4',
+    color: '#10B981', // Emerald Green
   },
   {
     title: 'Fleet Management',
     subtitle: 'Manage fleet alerts',
     icon: 'business',
     screen: 'FleetManagement',
-    color: '#F59E0B',
+    color: '#16A34A', // Forest Green
   },
   {
     title: 'System Info',
     subtitle: 'API health & status',
     icon: 'information-circle',
     screen: 'SystemInfo',
-    color: '#10B981',
+    color: '#22C55E', // Bright Green
   },
   {
     title: 'Blockchain Ledger',
     subtitle: 'Transaction ledger',
     icon: 'receipt',
     screen: 'Ledger',
-    color: '#EF4444',
+    color: '#15803D', // Dark Forest Green
   },
   {
     title: 'Settings',
     subtitle: 'App preferences',
     icon: 'settings',
     screen: 'Settings',
-    color: '#6B7280',
+    color: '#34D399', // Light Green
   },
 ];
 

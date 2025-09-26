@@ -70,8 +70,8 @@ frontend/
 ## 🎨 Theme System
 
 ### Dual Brand Support
-- **Brand A**: Tesla-inspired blue theme (#1976D2)
-- **Brand B**: Rivian-inspired green theme (#A3E635)
+- **Brand A**: Emerald Green theme (#10B981)
+- **Brand B**: Deep Forest Green theme (#16A34A)
 
 ### Theme Features
 - Dynamic theme switching

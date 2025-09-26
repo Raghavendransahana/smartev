@@ -145,8 +145,8 @@ src/
 
 The app supports multiple brand themes:
 
-- **Brand A**: Tesla-inspired blue theme
-- **Brand B**: Rivian-inspired green theme
+- **Brand A**: Emerald Green theme - A vibrant and modern green theme perfect for sustainability-focused brands
+- **Brand B**: Deep Forest Green theme - A rich, natural green theme with deeper earth tones
 
 Themes are fully customizable and include:
 - Color palettes

@@ -56,21 +56,21 @@ export interface Theme {
   };
 }
 
-// Brand A Theme (Tesla-inspired)
+// Brand A Theme (Emerald Green)
 export const brandATheme: Theme = {
   colors: {
-    primary: '#1976D2',
-    secondary: '#424242',
-    accent: '#FF5722',
-    background: '#FFFFFF',
-    surface: '#F5F5F5',
-    text: '#212121',
-    textSecondary: '#757575',
-    border: '#E0E0E0',
-    success: '#4CAF50',
-    warning: '#FF9800',
-    error: '#F44336',
-    info: '#2196F3',
+    primary: '#10B981', // Emerald Green
+    secondary: '#059669', // Teal Green
+    accent: '#34D399', // Light Green
+    background: '#F0FDF4', // Very light green
+    surface: '#ECFDF5', // Light green
+    text: '#14532D', // Dark green
+    textSecondary: '#166534', // Medium green
+    border: '#BBF7D0', // Light green border
+    success: '#22C55E', // Green
+    warning: '#F59E0B', // Amber
+    error: '#EF4444', // Red
+    info: '#16A34A', // Forest Green
   },
   spacing: {
     xs: 4,
@@ -115,21 +115,21 @@ export const brandATheme: Theme = {
   },
 };
 
-// Brand B Theme (Rivian-inspired)
+// Brand B Theme (Deep Forest Green)
 export const brandBTheme: Theme = {
   colors: {
-    primary: '#A3E635',
-    secondary: '#0F172A',
-    accent: '#F59E0B',
-    background: '#FFFFFF',
-    surface: '#F8FAFC',
-    text: '#0F172A',
-    textSecondary: '#64748B',
-    border: '#E2E8F0',
-    success: '#10B981',
-    warning: '#F59E0B',
-    error: '#EF4444',
-    info: '#3B82F6',
+    primary: '#16A34A', // Forest Green
+    secondary: '#15803D', // Dark Forest Green
+    accent: '#22C55E', // Bright Green
+    background: '#F7FEF8', // Very light green
+    surface: '#F0FDF4', // Light green
+    text: '#0F2419', // Very dark green
+    textSecondary: '#14532D', // Dark green
+    border: '#A7F3D0', // Light green border
+    success: '#22C55E', // Green
+    warning: '#F59E0B', // Amber
+    error: '#EF4444', // Red
+    info: '#059669', // Teal Green
   },
   spacing: {
     xs: 4,

@@ -13,7 +13,24 @@ import { apiLimiter } from './middlewares/rateLimiter';
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+
+// CORS configuration for production-grade security
+const corsOptions = {
+  origin: [
+    'http://localhost:5173', // Vite dev server
+    'http://localhost:8081', // Backend API
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:8081',
+    // Add production URLs when deploying
+    ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200, // For legacy browser support
+};
+
+app.use(cors(corsOptions));
 app.use(requestContext);
 app.use(apiLimiter);
 app.use(express.json({ limit: '1mb' }));

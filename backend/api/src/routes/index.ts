@@ -1,4 +1,5 @@
 import express from 'express';
+import { authRoutes } from './auth.routes';
 import { systemRouter } from './system.routes';
 import { userRouter } from './user.routes';
 import { vehicleRouter } from './vehicle.routes';
@@ -10,6 +11,9 @@ import { analyticsRouter } from './analytics.routes';
 import { blockchainRouter } from './blockchain.routes';
 
 const router = express.Router();
+
+// Authentication routes
+router.use('/auth', authRoutes);
 
 // System routes
 router.use('/system', systemRouter);

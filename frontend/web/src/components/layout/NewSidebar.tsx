@@ -13,6 +13,7 @@ import {
   MapPin,
   Battery,
   Recycle,
+  Car,
   LogOut
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
@@ -80,6 +81,12 @@ const getNavigationByRole = (role: UserRole): NavigationItem[] => {
           roles: ['Super Admin'] as UserRole[],
         },
         {
+          name: 'Vehicle & Battery',
+          href: '/super-admin/vehicles',
+          icon: Car,
+          roles: ['Super Admin'] as UserRole[],
+        },
+        {
           name: 'Complaints',
           href: '/super-admin/complaints',
           icon: AlertTriangle,
@@ -107,6 +114,12 @@ const getNavigationByRole = (role: UserRole): NavigationItem[] => {
           name: 'User Management',
           href: '/admin/users',
           icon: Users,
+          roles: ['Admin'] as UserRole[],
+        },
+        {
+          name: 'Vehicle & Battery',
+          href: '/admin/vehicles',
+          icon: Car,
           roles: ['Admin'] as UserRole[],
         },
         {

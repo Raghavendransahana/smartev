@@ -48,6 +48,81 @@ interface UpdateUserData {
   role?: 'owner' | 'oem' | 'regulator' | 'service_provider' | 'admin';
 }
 
+// Vehicle interfaces
+interface Vehicle {
+  _id: string;
+  brand: string;
+  vehicleModel: string;
+  vin: string;
+  owner: string;
+  blockchainPassportId?: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CreateVehicleData {
+  brand: string;
+  vehicleModel: string;
+  vin: string;
+  status?: 'active' | 'inactive';
+}
+
+interface CreateVehicleForUserData extends CreateVehicleData {
+  ownerId: string;
+}
+
+interface UpdateVehicleData {
+  brand?: string;
+  vehicleModel?: string;
+  status?: 'active' | 'inactive';
+}
+
+// Battery interfaces
+interface BatteryLog {
+  _id: string;
+  vehicle: string;
+  stateOfCharge: number;
+  stateOfHealth: number;
+  temperature: number;
+  cycleCount: number;
+  recordedAt: string;
+  source: 'iot' | 'manual';
+  blockchainTxId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CreateBatteryLogData {
+  vehicleId: string;
+  batteryLevel: number;
+  voltage: number;
+  temperature: number;
+  cycleCount: number;
+  healthPercentage: number;
+  chargingStatus: 'charging' | 'not_charging' | 'fast_charging';
+}
+
+interface CreateBatteryLogAdminData {
+  vehicleId: string;
+  stateOfCharge: number;
+  stateOfHealth: number;
+  temperature: number;
+  cycleCount: number;
+  voltage?: number;
+  chargingStatus?: 'charging' | 'not_charging' | 'fast_charging';
+  source?: 'iot' | 'manual';
+  recordedAt?: string;
+}
+
+// Vehicle-User mapping interface
+interface VehicleUserMapping {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  vehicles: Vehicle[];
+}
+
 class ApiService {
   private getAuthToken(): string | null {
     return localStorage.getItem('token');
@@ -181,7 +256,119 @@ class ApiService {
   async getCurrentUser(): Promise<User> {
     return this.request('/users/profile');
   }
+
+  // Vehicle management methods
+  async getVehicles(): Promise<Vehicle[]> {
+    return this.request('/vehicles');
+  }
+
+  async getAllVehicles(): Promise<Vehicle[]> {
+    return this.request('/vehicles/admin/all');
+  }
+
+  async getVehiclesByUserId(userId: string): Promise<Vehicle[]> {
+    return this.request(`/vehicles/admin/user/${userId}`);
+  }
+
+  async getVehicleById(id: string): Promise<Vehicle> {
+    return this.request(`/vehicles/${id}`);
+  }
+
+  async createVehicle(vehicleData: CreateVehicleData): Promise<Vehicle> {
+    return this.request('/vehicles', {
+      method: 'POST',
+      body: JSON.stringify(vehicleData),
+    });
+  }
+
+  async createVehicleForUser(vehicleData: CreateVehicleForUserData): Promise<Vehicle> {
+    console.log('API Service - Creating vehicle for user:', vehicleData);
+    return this.request('/vehicles/admin/create', {
+      method: 'POST',
+      body: JSON.stringify(vehicleData),
+    });
+  }
+
+  async updateVehicle(id: string, vehicleData: UpdateVehicleData): Promise<Vehicle> {
+    return this.request(`/vehicles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(vehicleData),
+    });
+  }
+
+  async deleteVehicle(id: string): Promise<{ message: string }> {
+    return this.request(`/vehicles/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Battery management methods
+  async getBatteryLogs(vehicleId: string): Promise<BatteryLog[]> {
+    return this.request(`/battery/logs/${vehicleId}`);
+  }
+
+  async getBatteryLogsAdmin(vehicleId: string): Promise<BatteryLog[]> {
+    return this.request(`/battery/admin/logs/${vehicleId}`);
+  }
+
+  async createBatteryLog(batteryData: CreateBatteryLogData): Promise<BatteryLog> {
+    return this.request('/battery/log', {
+      method: 'POST',
+      body: JSON.stringify(batteryData),
+    });
+  }
+
+  async createAdminBatteryLog(batteryData: CreateBatteryLogAdminData): Promise<BatteryLog> {
+    return this.request('/battery/admin/log', {
+      method: 'POST',
+      body: JSON.stringify(batteryData),
+    });
+  }
+
+  // Combined methods for user-vehicle-battery mapping
+  async getAllUsersWithVehicles(): Promise<VehicleUserMapping[]> {
+    const users = await this.getUsers({ limit: 1000 });
+    const mappings: VehicleUserMapping[] = [];
+
+    for (const user of users.users) {
+      try {
+        const vehicles = await this.getVehiclesByUserId(user._id);
+        const mapping: VehicleUserMapping = {
+          userId: user._id,
+          userName: user.name,
+          userEmail: user.email,
+          vehicles: vehicles
+        };
+        mappings.push(mapping);
+      } catch (error) {
+        console.warn(`Failed to get vehicles for user ${user._id}:`, error);
+        // Still add user even if vehicle fetch fails
+        mappings.push({
+          userId: user._id,
+          userName: user.name,
+          userEmail: user.email,
+          vehicles: []
+        });
+      }
+    }
+
+    return mappings;
+  }
 }
 
 export const apiService = new ApiService();
-export type { User, GetUsersParams, CreateUserData, UpdateUserData, GetUsersResponse, PaginationInfo };
+export type { 
+  User, 
+  GetUsersParams, 
+  CreateUserData, 
+  UpdateUserData, 
+  GetUsersResponse, 
+  PaginationInfo,
+  Vehicle,
+  CreateVehicleData,
+  CreateVehicleForUserData,
+  UpdateVehicleData,
+  BatteryLog,
+  CreateBatteryLogData,
+  VehicleUserMapping
+};

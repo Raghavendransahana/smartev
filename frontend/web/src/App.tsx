@@ -7,6 +7,7 @@ import { AdminDashboard } from './pages/AdminDashboard'
 import { SellerDashboard } from './pages/SellerDashboard'
 import { UserManagement } from './pages/UserManagement'
 import { EVStations } from './pages/EVStations'
+import { VehicleBatteryManagement } from './pages/VehicleBatteryManagement'
 import { Layout } from './components/layout/Layout'
 
 function App() {
@@ -63,6 +64,22 @@ function App() {
               <ProtectedRoute requiredRoles={['Admin']}>
                 <Layout>
                   <EVStations />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/vehicles" element={
+              <ProtectedRoute requiredRoles={['Admin']}>
+                <Layout>
+                  <VehicleBatteryManagement />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/super-admin/vehicles" element={
+              <ProtectedRoute requiredRoles={['Super Admin']}>
+                <Layout>
+                  <VehicleBatteryManagement />
                 </Layout>
               </ProtectedRoute>
             } />

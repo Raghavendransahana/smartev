@@ -95,7 +95,7 @@ The OCM database includes thousands of charging stations across India:
 5. **Global Scalability**: Easy expansion to other countries
 
 ### Live Testing
-- **Development Server**: Running at http://localhost:5176/
+- **Development Server**: Running at http://10.10.40.174:5176/
 - **Admin Dashboard**: Navigate to admin section to see OCM integration
 - **Super Admin**: Check "EV Network" tab for comprehensive view
 - **Interactive Testing**: Click markers, use search/filters, view station details

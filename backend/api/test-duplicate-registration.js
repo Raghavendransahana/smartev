@@ -7,7 +7,7 @@
 
 const http = require('http');
 
-const API_BASE = process.env.API_URL || 'http://localhost:4000';
+const API_BASE = process.env.API_URL || 'http://10.10.40.174:4000';
 
 console.log('🧪 Testing User Registration Duplicate Entry Handling...');
 

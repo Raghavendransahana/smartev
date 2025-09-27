@@ -27,7 +27,7 @@ Comprehensive testing completed successfully:
 
 ## ✅ Current Status
 
-- **Server**: Running on `http://localhost:4000`
+- **Server**: Running on `http://10.10.40.174:4000`
 - **Database**: Connected to MongoDB Atlas (`ev` database)
 - **Authentication**: JWT tokens working properly
 - **Validation**: All schemas updated and working
@@ -85,7 +85,7 @@ Set "FlexiEVChain Environment" as active
 ## 🔧 Environment Variables
 
 The environment file includes:
-- `baseUrl`: http://localhost:4000
+- `baseUrl`: http://10.10.40.174:4000
 - `authToken`: Auto-populated after login
 - `testUserEmail`: john.doe@example.com
 - `testUserPassword`: SecurePass123!

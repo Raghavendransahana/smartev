@@ -33,13 +33,13 @@ Edit `.env` and add your Groq API key:
 GROQ_API_KEY=your_groq_api_key_here
 PORT=4500
 NODE_ENV=development
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+ALLOWED_ORIGINS=http://10.10.40.174:3000,http://10.10.40.174:5173
 ```
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 PORT=4500
 NODE_ENV=development
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+ALLOWED_ORIGINS=http://10.10.40.174:3000,http://10.10.40.174:5173
 ```
 
 ### 3. Start the Server
@@ -54,7 +54,7 @@ For development with auto-restart:
 npm run dev
 ```
 
-The server will start on <http://localhost:4500>
+The server will start on <http://10.10.40.174:4500>
 
 ## API Endpoints
 
@@ -65,7 +65,7 @@ The server will start on <http://localhost:4500>
 Ask any EV-related question and get expert answers.
 
 ```bash
-curl -X POST http://localhost:4500/api/chat \
+curl -X POST http://10.10.40.174:4500/api/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "How to optimize battery life in Tata Nexon EV?"}'
 ```
@@ -81,7 +81,7 @@ curl -X POST http://localhost:4500/api/chat \
 ### 1. Ask Battery Questions
 
 ```javascript
-const response = await fetch('http://localhost:4500/api/chat', {
+const response = await fetch('http://10.10.40.174:4500/api/chat', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -96,7 +96,7 @@ console.log(`Answer: ${result.answer}`);
 ### 2. Vehicle Troubleshooting
 
 ```javascript
-const response = await fetch('http://localhost:4500/api/chat', {
+const response = await fetch('http://10.10.40.174:4500/api/chat', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -144,7 +144,7 @@ The service uses environment variables for configuration:
 # Server Configuration
 NODE_ENV=development
 PORT=4500
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+ALLOWED_ORIGINS=http://10.10.40.174:3000,http://10.10.40.174:5173
 
 # Groq Configuration  
 GROQ_API_KEY=your_key_here

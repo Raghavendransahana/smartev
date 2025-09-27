@@ -9,7 +9,7 @@ const http = require('http');
 const path = require('path');
 
 // Test configuration
-const API_BASE = process.env.API_URL || 'http://localhost:4000';
+const API_BASE = process.env.API_URL || 'http://10.10.40.174:4000';
 const TEST_TIMEOUT = 5000;
 
 console.log('🚀 Starting FlexiEVChain API Tests...');

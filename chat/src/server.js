@@ -16,7 +16,14 @@ const PORT = process.env.PORT || 4500;
 
 // Middleware
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:8081', 'http://localhost:5173', 'http://127.0.0.1:5500'],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || [
+    'http://10.10.40.174:8081', 
+    'http://10.10.40.174:5173', 
+    'http://127.0.0.1:5500',
+    'http://localhost:8081',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
   credentials: true
 }));
 
@@ -131,7 +138,7 @@ const startServer = async () => {
 
     const server = app.listen(PORT, () => {
       console.log('\n🚀 FlexiEV Chat Service Started!');
-      console.log(`📡 Server running on http://localhost:${PORT}`);
+      console.log(`📡 Server running on http://10.10.40.174:${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log('\n📋 Available Endpoints:');
       console.log(`   GET  /                 - Service information`);

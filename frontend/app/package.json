@@ -6,7 +6,7 @@
     "start": "expo start",
     "start:tunnel": "expo start --tunnel",
     "start:lan": "expo start --lan",
-    "start:localhost": "expo start --localhost",
+    "start:10.10.40.174": "expo start --10.10.40.174",
     "start:clear": "expo start --clear",
     "android": "expo start --android",
     "ios": "expo start --ios",

@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "flexiev-chat-service",
 		"name": "FlexiEV Chat Service API",
-		"description": "API collection for the FlexiEV Chat Service - AI-powered EV assistant for the Indian market using Groq's ultra-fast inference with Llama3-8B model.\n\nThis service provides expert knowledge about Indian EV brands including Tata, Mahindra, MG, Hyundai, Kia, BYD, and others.\n\nBase URL: http://localhost:4500",
+		"description": "API collection for the FlexiEV Chat Service - AI-powered EV assistant for the Indian market using Groq's ultra-fast inference with Llama3-8B model.\n\nThis service provides expert knowledge about Indian EV brands including Tata, Mahindra, MG, Hyundai, Kia, BYD, and others.\n\nBase URL: http://10.10.40.174:4500",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "flexiev-team"
 	},
@@ -712,7 +712,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:4500",
+			"value": "http://10.10.40.174:4500",
 			"type": "string",
 			"description": "Base URL for the FlexiEV Chat Service API"
 		}

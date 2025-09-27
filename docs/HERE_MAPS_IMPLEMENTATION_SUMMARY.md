@@ -95,7 +95,7 @@ VITE_HERE_API_KEY=your_actual_here_api_key_here
 
 The implementation is ready for testing:
 1. **Development Server**: `npm run dev` in `frontend/web`
-2. **URL**: http://localhost:5173/
+2. **URL**: http://10.10.40.174:5173/
 3. **Admin Access**: Navigate to admin dashboards to test map functionality
 4. **Browser**: Chrome, Firefox, Safari, Edge all supported
 

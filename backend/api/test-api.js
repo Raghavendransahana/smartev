@@ -20,7 +20,7 @@ function testRegistration() {
     const data = JSON.stringify(testUser);
     
     const options = {
-      hostname: 'localhost',
+      hostname: '10.10.40.174',
       port: 4000,
       path: '/api/users/register',
       method: 'POST',
@@ -56,7 +56,7 @@ function testLogin(email, password) {
     const data = JSON.stringify({ email, password });
     
     const options = {
-      hostname: 'localhost',
+      hostname: '10.10.40.174',
       port: 4000,
       path: '/api/users/login',
       method: 'POST',
@@ -90,7 +90,7 @@ function testLogin(email, password) {
 function testHealth() {
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: 'localhost',
+      hostname: '10.10.40.174',
       port: 4000,
       path: '/api/system/status',
       method: 'GET'

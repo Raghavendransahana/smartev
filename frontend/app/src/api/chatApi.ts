@@ -96,6 +96,12 @@ class ChatApiService {
       return data;
     } catch (error) {
       this.log('Health Check Error', error);
+      
+      // Check for CORS errors
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Chat service is unreachable. Please ensure the chat server is running and CORS is properly configured.');
+      }
+      
       throw new Error('Unable to check service health');
     }
   }

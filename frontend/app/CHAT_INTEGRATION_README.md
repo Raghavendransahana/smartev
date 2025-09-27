@@ -45,7 +45,7 @@ src/
 
 ## 🔌 Backend Integration
 
-The chat overlay connects to the FlexiEV Chat Service running on `localhost:4500` with these endpoints:
+The chat overlay connects to the FlexiEV Chat Service running on `10.10.40.174:4500` with these endpoints:
 
 - `POST /api/chat` - Send messages to EV assistant
 - `GET /api/health` - Check service connectivity
@@ -72,7 +72,7 @@ The chat overlay connects to the FlexiEV Chat Service running on `localhost:4500
 ```typescript
 // src/config/chatConfig.ts
 const DEV_CONFIG = {
-  CHAT_SERVICE_URL: 'http://localhost:4500',
+  CHAT_SERVICE_URL: 'http://10.10.40.174:4500',
   ENABLE_DEBUG_LOGS: true,
   AUTO_RECONNECT: true,
   HEALTH_CHECK_INTERVAL: 30000,

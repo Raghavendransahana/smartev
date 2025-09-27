@@ -574,7 +574,7 @@
                 this.sendButton = document.getElementById('sendButton');
                 this.chatForm = document.getElementById('chatForm');
                 
-                this.baseURL = 'http://localhost:4500'; // Update if backend is hosted elsewhere
+                this.baseURL = 'http://10.10.40.174:4500'; // Update if backend is hosted elsewhere
                 this.isTyping = false;
                 this.messageCount = 0;
                 this.sessionStartTime = Date.now();
@@ -894,7 +894,7 @@
 
             openPostman() {
                 const postmanUrl = 'https://documenter.getpostman.com/view/flexiev-chat-api';
-                const fallbackUrl = 'http://localhost:4500/api/info';
+                const fallbackUrl = 'http://10.10.40.174:4500/api/info';
                 
                 // Try to open Postman documentation first, fallback to API info
                 const newWindow = window.open(postmanUrl, '_blank');

@@ -13,7 +13,7 @@ module.exports = {
     }
   },
   networks: {
-    localhost: {
+    10.10.40.174: {
       url: "http://127.0.0.1:8545"
     },
     hardhat: {
@@ -30,8 +30,8 @@ module.exports = {
 
 //npx hardhat node
 
-// npx hardhat run scripts/deploy.ts --network localhost
-// npx hardhat test --network localhost
+// npx hardhat run scripts/deploy.ts --network 10.10.40.174
+// npx hardhat test --network 10.10.40.174
 // npx hardhat node
 //  
 //npx hardhat verify --network <NETWORK_NAME> <CONTRACT_ADDRESS> <CONSTRUCTOR_PARAMETERS>

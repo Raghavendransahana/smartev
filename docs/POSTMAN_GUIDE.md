@@ -140,7 +140,7 @@ The collection automatically handles JWT token management - just run the registr
 
 ## Troubleshooting
 
-- Ensure API server is running on `http://localhost:4000`
+- Ensure API server is running on `http://10.10.40.174:4000`
 - Check that MongoDB Atlas connection is working
 - Verify environment variables are set correctly
 - Review Postman console for detailed error messages

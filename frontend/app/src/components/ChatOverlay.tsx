@@ -26,7 +26,7 @@ interface ChatOverlayProps {
 }
 
 const ChatOverlay: React.FC<ChatOverlayProps> = ({ 
-  bottom = 30, 
+  bottom = 70, 
   right = 20 
 }) => {
   const {

@@ -74,6 +74,12 @@ const getNavigationByRole = (role: UserRole): NavigationItem[] => {
           roles: ['Super Admin'] as UserRole[],
         },
         {
+          name: 'EV Stations',
+          href: '/super-admin/stations',
+          icon: MapPin,
+          roles: ['Super Admin'] as UserRole[],
+        },
+        {
           name: 'Complaints',
           href: '/super-admin/complaints',
           icon: AlertTriangle,

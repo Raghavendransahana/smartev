@@ -6,6 +6,7 @@ import { SuperAdminDashboard } from './pages/NewSuperAdminDashboard'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { SellerDashboard } from './pages/SellerDashboard'
 import { UserManagement } from './pages/UserManagement'
+import { EVStations } from './pages/EVStations'
 import { Layout } from './components/layout/Layout'
 
 function App() {
@@ -34,6 +35,14 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/super-admin/stations" element={
+              <ProtectedRoute requiredRoles={['Super Admin']}>
+                <Layout>
+                  <EVStations />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
             <Route path="/admin" element={
               <ProtectedRoute requiredRoles={['Admin']}>
                 <Layout>
@@ -46,6 +55,14 @@ function App() {
               <ProtectedRoute requiredRoles={['Admin']}>
                 <Layout>
                   <UserManagement />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/stations" element={
+              <ProtectedRoute requiredRoles={['Admin']}>
+                <Layout>
+                  <EVStations />
                 </Layout>
               </ProtectedRoute>
             } />

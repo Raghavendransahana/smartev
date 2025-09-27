@@ -57,6 +57,8 @@ const mockUserDetail: UserDetail = {
 
 export const UserProfile: React.FC<UserProfileProps> = ({ userId, onBack, onEdit }) => {
   // In a real app, you would fetch user data by userId
+  // For now, using mock data
+  console.log('Loading profile for user ID:', userId);
   const user = mockUserDetail
 
   const getStatusIcon = (status: string) => {

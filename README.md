@@ -1,6 +1,26 @@
-# 🔋 SmartEV Battery Twin - Complete Integration
+# 🔋 SmartEV Battery Twin - Complete EV Platform
 
-A fully integrated battery monitoring system combining Express.js with ML models for SOH (State of Health) and RUL (Remaining Useful Life) predictions.
+A comprehensive EV platform integrating battery monitoring, chat assistance, user management, and real-time charging network visualization with HERE Maps.
+
+## 🌟 New Features
+
+### 🗺️ Open Charge Map Integration
+- **Real EV Charging Data**: Live data from Open Charge Map's crowdsourced database
+- **Completely Free**: No API keys, no costs, no usage limits
+- **Global Coverage**: 500,000+ charging stations worldwide
+- **Community Verified**: Accurate, up-to-date information from EV drivers
+- **Admin Management**: Full station browsing and management interface
+- **OpenStreetMap**: Free, open-source mapping with Leaflet.js
+
+### 💬 Chat Integration  
+- **AI-powered Chat**: Groq-powered chatbot for EV assistance
+- **Mobile & Web Support**: React Native overlay and HTML chat interface
+- **Teal Color Scheme**: Consistent branding across platforms
+
+### 🔐 Enhanced User Management
+- **Vehicle Integration**: Optional vehicle registration during user signup
+- **Admin Dashboards**: Comprehensive management interfaces
+- **Authentication**: JWT-based secure authentication
 
 ## 🚀 Quick Start
 
@@ -24,9 +44,23 @@ source mobility/bin/activate
 pip install -r requirements.txt
 cd ../..
 
+# Set up frontend web application
+cd frontend/web
+npm install
+cd ../..
+
+# Set up HERE Maps API (see docs/HERE_MAPS_INTEGRATION_GUIDE.md)
+# Replace YOUR_HERE_API_KEY with your actual key in admin dashboard files
+
 # Start the complete system
 ./start.sh
 ```
+
+### HERE Maps Setup
+
+1. **No API Keys Needed**: OCM (Open Charge Map) is completely free
+2. **Live Data**: Real charging stations from community-verified database  
+3. **See Full Guide**: Check `docs/OCM_INTEGRATION_GUIDE.md`
 
 ### Access Points
 - **🌐 Main Server**: http://localhost:8000

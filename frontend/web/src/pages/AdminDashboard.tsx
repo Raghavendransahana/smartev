@@ -242,6 +242,23 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      {/* EV Network Link Card */}
+      <Card className="p-6 border-gray-200 bg-white">
+        <div className="text-center">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">EV Charging Network</h3>
+          <p className="text-gray-600 text-sm mb-4">
+            Access the comprehensive EV charging stations map powered by Open Charge Map
+          </p>
+          <Button 
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={() => window.location.href = '/admin/stations'}
+          >
+            <Building2 size={16} className="mr-2" />
+            View EV Stations Map
+          </Button>
+        </div>
+      </Card>
     </div>
   )
 }

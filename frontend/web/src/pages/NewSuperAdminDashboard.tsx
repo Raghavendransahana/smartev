@@ -390,7 +390,7 @@ export const SuperAdminDashboard: React.FC = () => {
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as 'overview' | 'admins' | 'brands' | 'complaints')}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
               activeTab === tab.id
                 ? 'bg-gray-100 text-gray-900'

@@ -1,4 +1,4 @@
-const BASE_URL = 'http://192.168.137.103:4000/api'; // Backend API URL
+const BASE_URL = 'http://localhost:4000/api'; // Backend API URL
 
 // Types for API responses (updated to match backend schema)
 export interface Vehicle {

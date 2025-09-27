@@ -22,7 +22,13 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["battery", "ml", "express", "smartev", "iot"],
+  "keywords": [
+    "battery",
+    "ml",
+    "express",
+    "smartev",
+    "iot"
+  ],
   "author": "SmartEV Team",
   "license": "MIT"
 }

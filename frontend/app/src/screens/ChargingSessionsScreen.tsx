@@ -9,10 +9,13 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  ScrollView,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { flexiEVAPI, ChargingSession, Vehicle, BatteryTelemetry } from '../api/flexiEVApi';
+import ChargingHistoryCard from '@/components/Dashboard/ChargingHistoryCard';
+import { useNavigation } from '@react-navigation/native';
 
 const ChargingSessionsScreen: React.FC = () => {
   const { theme } = useTheme();

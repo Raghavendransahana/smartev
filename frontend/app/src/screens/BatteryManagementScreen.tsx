@@ -1,358 +1,596 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
+  ScrollView,
   StyleSheet,
-  FlatList,
-  Alert,
-  ActivityIndicator,
+  RefreshControl,
   Dimensions,
+  TouchableOpacity,
+  Animated,
+  StatusBar,
+  Platform,
+  Image,
 } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
-import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
-import { flexiEVAPI, BatteryTelemetry, Vehicle } from '../api/flexiEVApi';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-interface VehicleBatteryData {
-  vehicle: Vehicle;
-  latestBatteryData: BatteryTelemetry | null;
-  batteryHistory: BatteryTelemetry[];
+interface CarDetails {
+  manufacturer: string;
+  city: string;
+  address: string;
+  batteryOwnerStatus: string;
+  stateOfCharge: number;
+  stateOfHealth: number;
+  serviceStatus: 'up-to-date' | 'pending';
+  cyclesCompleted: number;
+  warrantyStatus: 'active' | 'expired';
 }
 
-const BatteryManagementScreen: React.FC = () => {
-  const { theme } = useTheme();
-  const { user } = useAuth();
-  const [vehicleBatteryData, setVehicleBatteryData] = useState<VehicleBatteryData[]>([]);
-  const [loading, setLoading] = useState(true);
+const BatteryDashboard: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
+  const [batteryLevel, setBatteryLevel] = useState(90);
+  
+  // Animation refs
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const batteryAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    loadAllVehicleBatteryData();
-  }, []);
+    // Entrance animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
-  const loadAllVehicleBatteryData = async () => {
-    try {
-      setLoading(true);
-      console.log('Loading vehicles and battery data for user...');
-      
-      // Get user's vehicles (backend already filters by owner)
-      const vehicles = await flexiEVAPI.getVehicles();
-      console.log('Loaded vehicles:', vehicles.length);
+    // Battery level animation
+    Animated.timing(batteryAnim, {
+      toValue: batteryLevel / 100,
+      duration: 1000,
+      useNativeDriver: false,
+    }).start();
+  }, [batteryLevel]);
 
-      // Load battery data for each vehicle
-      const vehicleBatteryPromises = vehicles.map(async (vehicle) => {
-        try {
-          const [latestBatteryData, batteryHistory] = await Promise.all([
-            flexiEVAPI.getLatestBatteryData(vehicle._id).catch(() => null),
-            flexiEVAPI.getBatteryHistory(vehicle._id).catch(() => []),
-          ]);
-          
-          return {
-            vehicle,
-            latestBatteryData,
-            batteryHistory,
-          } as VehicleBatteryData;
-        } catch (error) {
-          console.error(`Error loading battery data for vehicle ${vehicle._id}:`, error);
-          return {
-            vehicle,
-            latestBatteryData: null,
-            batteryHistory: [],
-          } as VehicleBatteryData;
-        }
-      });
-
-      const vehicleBatteryResults = await Promise.all(vehicleBatteryPromises);
-      setVehicleBatteryData(vehicleBatteryResults);
-      console.log('Loaded battery data for', vehicleBatteryResults.length, 'vehicles');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load battery data');
-      console.error('Error loading vehicle battery data:', error);
-    } finally {
-      setLoading(false);
-    }
+  // Mock data
+  const vehicleData = {
+    carName: "Tata Punch EV",
+    vehicleId: "TN43-EV-2024-7892",
+    batteryPercentage: 90,
+    kmsDriven: 4330,
+    weeklyKms: 340,
+    isCharging: false,
   };
 
-  const handleRefresh = async () => {
+  const carDetails: CarDetails = {
+    manufacturer: "Tata Motors",
+    city: "Coimbatore",
+    address: "KPR Institute of Engineering, Arasur",
+    batteryOwnerStatus: "Owned",
+    stateOfCharge: 90,
+    stateOfHealth: 96,
+    serviceStatus: "up-to-date",
+    cyclesCompleted: 847,
+    warrantyStatus: "active",
+  };
+
+  const onRefresh = async () => {
     setRefreshing(true);
-    await loadAllVehicleBatteryData();
+    await new Promise(resolve => setTimeout(resolve, 1200));
     setRefreshing(false);
   };
 
-  const getChartDataForVehicle = (batteryHistory: BatteryTelemetry[]) => {
-    const recentData = batteryHistory.slice(-10);
-    if (recentData.length === 0) return null;
-    
-    return {
-      labels: recentData.map((_, index) => `${index + 1}`),
-      datasets: [
-        {
-          data: recentData.map(d => d.batteryLevel),
-          color: (opacity = 1) => `rgba(34, 197, 94, ${opacity})`,
-          strokeWidth: 2,
-        },
-        {
-          data: recentData.map(d => d.health),
-          color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
-          strokeWidth: 2,
-        },
-      ],
-      legend: ['Battery Level (%)', 'Health (%)'],
-    };
-  };
-
-
-
-  const getSoCColor = (soc: number) => {
-    if (soc > 80) return '#22c55e';
-    if (soc > 20) return '#f59e0b';
-    return '#ef4444';
-  };
-
-  const getSoHColor = (soh: number) => {
-    if (soh > 80) return '#22c55e';
-    if (soh > 60) return '#f59e0b';
-    return '#ef4444';
-  };
-
-  const VehicleBatteryCard = ({ data }: { data: VehicleBatteryData }) => {
-    const { vehicle, latestBatteryData, batteryHistory } = data;
-    const chartData = getChartDataForVehicle(batteryHistory);
-
-    return (
-      <View style={[styles.vehicleCard, { backgroundColor: theme.colors.surface }]}>
-        {/* Vehicle Header */}
-        <View style={styles.vehicleHeader}>
-          <Text style={[styles.vehicleTitle, { color: theme.colors.text }]}>
-            {vehicle.brand} {vehicle.vehicleModel}
-          </Text>
-          <Text style={[styles.vehicleVin, { color: theme.colors.textSecondary }]}>
-            VIN: {vehicle.vin}
-          </Text>
-        </View>
-
-        {/* Latest Battery Data */}
-        {latestBatteryData ? (
-          <View style={styles.batteryDataContainer}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-              Current Battery Status
-            </Text>
-            <View style={styles.batteryGrid}>
-              <View style={styles.batteryItem}>
-                <Text style={[styles.batteryLabel, { color: theme.colors.textSecondary }]}>
-                  State of Charge
-                </Text>
-                <Text style={[styles.batteryValue, { color: getSoCColor(latestBatteryData.batteryLevel) }]}>
-                  {latestBatteryData.batteryLevel}%
-                </Text>
-              </View>
-              <View style={styles.batteryItem}>
-                <Text style={[styles.batteryLabel, { color: theme.colors.textSecondary }]}>
-                  State of Health
-                </Text>
-                <Text style={[styles.batteryValue, { color: getSoHColor(latestBatteryData.health) }]}>
-                  {latestBatteryData.health}%
-                </Text>
-              </View>
-              <View style={styles.batteryItem}>
-                <Text style={[styles.batteryLabel, { color: theme.colors.textSecondary }]}>
-                  Temperature
-                </Text>
-                <Text style={[styles.batteryValue, { color: theme.colors.text }]}>
-                  {latestBatteryData.temperature}°C
-                </Text>
-              </View>
-              <View style={styles.batteryItem}>
-                <Text style={[styles.batteryLabel, { color: theme.colors.textSecondary }]}>
-                  Cycle Count
-                </Text>
-                <Text style={[styles.batteryValue, { color: theme.colors.text }]}>
-                  {latestBatteryData.cycleCount}
-                </Text>
-              </View>
-            </View>
-            
-            {/* Battery Trends Chart */}
-            {chartData && (
-              <View style={styles.chartSection}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-                  Battery Trends (Last 10 Records)
-                </Text>
-                <LineChart
-                  data={chartData}
-                  width={width - 64}
-                  height={200}
-                  chartConfig={{
-                    backgroundColor: theme.colors.surface,
-                    backgroundGradientFrom: theme.colors.surface,
-                    backgroundGradientTo: theme.colors.surface,
-                    decimalPlaces: 1,
-                    color: (opacity = 1) => `rgba(100, 100, 100, ${opacity})`,
-                    labelColor: (opacity = 1) => theme.colors.textSecondary,
-                    style: { borderRadius: 16 },
-                  }}
-                  bezier
-                  style={{ marginVertical: 8, borderRadius: 16 }}
-                />
-              </View>
-            )}
-          </View>
-        ) : (
-          <View style={styles.noBatteryData}>
-            <Text style={[styles.noBatteryText, { color: theme.colors.textSecondary }]}>
-              No battery data available for this vehicle
-            </Text>
-          </View>
-        )}
-      </View>
-    );
-  };
-
-
-
-  return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>
-          Battery Management
-        </Text>
-      </View>
-
-      {loading ? (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.text }]}>
-            Loading battery data...
-          </Text>
-        </View>
-      ) : vehicleBatteryData.length > 0 ? (
-        <FlatList
-          data={vehicleBatteryData}
-          keyExtractor={(item) => item.vehicle._id}
-          renderItem={({ item }) => <VehicleBatteryCard data={item} />}
-          style={styles.telemetryList}
-          refreshing={refreshing}
-          onRefresh={loadAllVehicleBatteryData}
-          showsVerticalScrollIndicator={false}
+  const BatteryIndicator: React.FC<{ percentage: number; isCharging: boolean }> = ({ 
+    percentage, 
+    isCharging 
+  }) => (
+    <View style={styles.batteryContainer}>
+      <View style={styles.batteryBody}>
+        <Animated.View 
+          style={[
+            styles.batteryFill,
+            {
+              width: batteryAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0%', '100%'],
+              }),
+              backgroundColor: percentage > 50 ? '#22C55E' : percentage > 20 ? '#F59E0B' : '#EF4444',
+            }
+          ]} 
         />
-      ) : (
-        <View style={styles.centerContent}>
-          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
-            No vehicles or battery data found
-          </Text>
+      </View>
+      <View style={styles.batteryTip} />
+      {isCharging && (
+        <View style={styles.chargingIcon}>
+          <MaterialIcons name="bolt" size={16} color="#22C55E" />
         </View>
       )}
     </View>
+  );
+
+  const StatCard: React.FC<{ 
+    title: string;
+    value: string;
+    subtitle?: string;
+    icon: string;
+    delay?: number;
+  }> = ({ title, value, subtitle, icon, delay = 0 }) => {
+    const cardScale = useRef(new Animated.Value(0.95)).current;
+
+    useEffect(() => {
+      Animated.spring(cardScale, {
+        toValue: 1,
+        delay: delay * 100,
+        tension: 120,
+        friction: 8,
+        useNativeDriver: true,
+      }).start();
+    }, []);
+
+    return (
+      <Animated.View style={[styles.statCard, { transform: [{ scale: cardScale }] }]}>
+        <View style={styles.statHeader}>
+          <MaterialIcons name={icon as any} size={24} color="#3B82F6" />
+          <Text style={styles.statTitle}>{title}</Text>
+        </View>
+        <Text style={styles.statValue}>{value}</Text>
+        {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
+      </Animated.View>
+    );
+  };
+
+  const DetailRow: React.FC<{ label: string; value: string; status?: 'good' | 'warning' | 'error' }> = ({ 
+    label, 
+    value, 
+    status 
+  }) => (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={[
+        styles.detailValue, 
+        status === 'good' && styles.statusGood,
+        status === 'warning' && styles.statusWarning,
+        status === 'error' && styles.statusError,
+      ]}>
+        {value}
+      </Text>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      <Animated.View style={[
+        styles.content,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }]
+        }
+      ]}>
+        <ScrollView 
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              tintColor="#3B82F6"
+              colors={['#3B82F6']}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} activeOpacity={0.6}>
+              <Ionicons name="arrow-back" size={22} color="#1F2937" />
+            </TouchableOpacity>
+            <View style={styles.headerCenter}>
+              <Text style={styles.headerTitle}>Battery Manager</Text>
+            </View>
+            <TouchableOpacity style={styles.menuButton} activeOpacity={0.6}>
+              <Ionicons name="notifications-outline" size={22} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Vehicle Info Card */}
+          <View style={styles.vehicleCard}>
+            <View style={styles.vehicleHeader}>
+              <View style={styles.vehicleInfo}>
+                <Text style={styles.carName}>{vehicleData.carName}</Text>
+                <Text style={styles.vehicleId}>ID: {vehicleData.vehicleId}</Text>
+              </View>
+              <View style={styles.carImageContainer}>
+                <View style={styles.carImagePlaceholder}>
+                  <MaterialIcons name="directions-car" size={48} color="#3B82F6" />
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Battery & Driving Stats */}
+          <View style={styles.statsSection}>
+            <View style={styles.batteryCard}>
+              <View style={styles.batteryHeader}>
+                <View style={styles.batteryInfo}>
+                  <Text style={styles.batteryTitle}>Battery Level</Text>
+                  <Text style={styles.batteryPercentage}>{vehicleData.batteryPercentage}%</Text>
+                  {vehicleData.isCharging && (
+                    <View style={styles.chargingStatus}>
+                      <View style={styles.chargingDot} />
+                      <Text style={styles.chargingText}>Charging</Text>
+                    </View>
+                  )}
+                </View>
+                <BatteryIndicator 
+                  percentage={vehicleData.batteryPercentage} 
+                  isCharging={vehicleData.isCharging} 
+                />
+              </View>
+            </View>
+
+            <StatCard
+              title="Distance Traveled"
+              value={`${vehicleData.kmsDriven.toLocaleString()} km`}
+              subtitle={`${vehicleData.weeklyKms} km last week`}
+              icon="route"
+              delay={1}
+            />
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={styles.primaryButton} activeOpacity={0.7}>
+              <MaterialIcons name="location-on" size={20} color="#FFFFFF" />
+              <Text style={styles.primaryButtonText}>Navigate to Station</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.7}>
+              <MaterialIcons name="analytics" size={20} color="#3B82F6" />
+              <Text style={styles.secondaryButtonText}>View Analytics</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Car Details Panel */}
+          <View style={styles.detailsCard}>
+            <View style={styles.detailsHeader}>
+              <MaterialIcons name="info" size={24} color="#3B82F6" />
+              <Text style={styles.detailsTitle}>Vehicle Details</Text>
+            </View>
+
+            <View style={styles.detailsContent}>
+              <DetailRow label="Manufacturer" value={carDetails.manufacturer} />
+              <DetailRow label="Location" value={`${carDetails.city}, ${carDetails.address}`} />
+              <DetailRow label="Battery Owner" value={carDetails.batteryOwnerStatus} />
+              <DetailRow 
+                label="State of Charge" 
+                value={`${carDetails.stateOfCharge}%`} 
+                status="good" 
+              />
+              <DetailRow 
+                label="State of Health" 
+                value={`${carDetails.stateOfHealth}%`} 
+                status={carDetails.stateOfHealth > 90 ? "good" : "warning"} 
+              />
+              <DetailRow 
+                label="Service Status" 
+                value={carDetails.serviceStatus === 'up-to-date' ? 'Up to Date' : 'Pending'} 
+                status={carDetails.serviceStatus === 'up-to-date' ? "good" : "warning"} 
+              />
+              <DetailRow 
+                label="Cycles Completed" 
+                value={carDetails.cyclesCompleted.toLocaleString()} 
+              />
+              <DetailRow 
+                label="Warranty" 
+                value={carDetails.warrantyStatus === 'active' ? 'Active' : 'Expired'} 
+                status={carDetails.warrantyStatus === 'active' ? "good" : "error"} 
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </Animated.View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: 20,
+    marginBottom: 16,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1F2937',
+    letterSpacing: -0.2,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  vehicleCard: {
+    backgroundColor: '#FAFBFC',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  vehicleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  vehicleInfo: {
+    flex: 1,
+  },
+  carName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  vehicleId: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  carImageContainer: {
+    marginLeft: 16,
+  },
+  carImagePlaceholder: {
+    width: 80,
+    height: 60,
+    borderRadius: 12,
+    backgroundColor: '#EFF6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statsSection: {
+    marginBottom: 24,
+  },
+  batteryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  batteryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  batteryInfo: {
+    flex: 1,
+  },
+  batteryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  batteryPercentage: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#22C55E',
+    marginBottom: 8,
+  },
+  chargingStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  chargingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22C55E',
+    marginRight: 6,
+  },
+  chargingText: {
+    fontSize: 12,
+    color: '#22C55E',
+    fontWeight: '500',
+  },
+  batteryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  batteryBody: {
+    width: 60,
+    height: 28,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 4,
+    backgroundColor: '#F9FAFB',
+    overflow: 'hidden',
+  },
+  batteryFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  batteryTip: {
+    width: 4,
+    height: 12,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    marginLeft: 2,
+  },
+  chargingIcon: {
+    position: 'absolute',
+    left: 26,
+    top: 6,
+  },
+  statCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    marginBottom: 16,
+  },
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginLeft: 8,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  statSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  actionButtons: {
+    marginBottom: 24,
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 1px 3px rgba(59, 130, 246, 0.3)',
+    } : {
+      shadowColor: '#3B82F6',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.3,
+      shadowRadius: 3,
+      elevation: 3,
+    }),
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  secondaryButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+  },
+  secondaryButtonText: {
+    color: '#3B82F6',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  detailsCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  detailsHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  telemetryList: {
-    flex: 1,
-  },
-  centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontStyle: 'italic',
-  },
-  // New vehicle card styles
-  vehicleCard: {
-    padding: 16,
-    marginBottom: 16,
-    borderRadius: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  vehicleHeader: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    paddingBottom: 12,
-    marginBottom: 16,
-  },
-  vehicleTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  vehicleVin: {
-    fontSize: 14,
-    fontFamily: 'monospace',
-  },
-  batteryDataContainer: {
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  batteryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 16,
-  },
-  batteryItem: {
-    flex: 1,
-    minWidth: '45%',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  batteryLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  batteryValue: {
+  detailsTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#1F2937',
+    marginLeft: 8,
   },
-  chartSection: {
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+  detailsContent: {
+    gap: 16,
   },
-  noBatteryData: {
-    padding: 20,
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingVertical: 4,
   },
-  noBatteryText: {
-    fontSize: 14,
-    fontStyle: 'italic',
+  detailLabel: {
+    fontSize: 15,
+    color: '#6B7280',
+    fontWeight: '500',
+    flex: 1,
+  },
+  detailValue: {
+    fontSize: 15,
+    color: '#1F2937',
+    fontWeight: '600',
+    textAlign: 'right',
+    flex: 1,
+  },
+  statusGood: {
+    color: '#22C55E',
+  },
+  statusWarning: {
+    color: '#F59E0B',
+  },
+  statusError: {
+    color: '#EF4444',
   },
 });
 
-export default BatteryManagementScreen;
+// Ensure proper export for React Navigation
+const BatteryDashboardComponent = BatteryDashboard;
+export { BatteryDashboardComponent };
+export default BatteryDashboard;

@@ -130,7 +130,33 @@ const MoreScreen: React.FC = () => {
           backgroundColor: theme.colors.surface,
         },
       ]}
-      onPress={() => navigation.navigate(feature.screen as keyof RootStackParamList)}
+      onPress={() => {
+        switch (feature.screen) {
+          case 'BlockchainExplorer':
+            navigation.navigate('BlockchainExplorer');
+            break;
+          case 'Analytics':
+            navigation.navigate('Analytics');
+            break;
+          case 'FleetManagement':
+            navigation.navigate('FleetManagement');
+            break;
+          case 'SystemInfo':
+            navigation.navigate('SystemInfo');
+            break;
+          case 'IntegrationStatus':
+            navigation.navigate('IntegrationStatus');
+            break;
+          case 'Ledger':
+            navigation.navigate('Ledger');
+            break;
+          case 'Settings':
+            navigation.navigate('Settings');
+            break;
+          default:
+            console.log('Unknown screen:', feature.screen);
+        }
+      }}
       activeOpacity={0.7}
     >
       <View style={[styles.iconContainer, { backgroundColor: feature.color }]}>

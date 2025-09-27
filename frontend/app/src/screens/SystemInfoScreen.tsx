@@ -19,7 +19,7 @@ const SystemInfoScreen: React.FC = () => {
   const [healthStatus, setHealthStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
+  const totalVehicles=22
   useEffect(() => {
     loadSystemData();
   }, []);

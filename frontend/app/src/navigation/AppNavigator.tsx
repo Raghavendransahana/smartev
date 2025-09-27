@@ -8,7 +8,6 @@ import RegisterScreen from '../screens/RegisterScreen';
 import LedgerScreen from '@/screens/LedgerScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
 import BlockchainExplorerScreen from '@/screens/BlockchainExplorerScreen';
-import AnalyticsScreen from '@/screens/AnalyticsScreen';
 import FleetManagementScreen from '@/screens/FleetManagementScreen';
 import SystemInfoScreen from '@/screens/SystemInfoScreen';
 import IntegrationStatusScreen from '@/screens/IntegrationStatusScreen';
@@ -89,17 +88,7 @@ const AppNavigator: React.FC = () => {
           headerTitleStyle: { fontWeight: 'bold' },
         }}
       />
-      <Stack.Screen 
-        name="Analytics" 
-        component={AnalyticsScreen}
-        options={{ 
-          headerShown: true,
-          title: 'Analytics & Insights',
-          headerStyle: { backgroundColor: '#1976D2' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold' },
-        }}
-      />
+     
       <Stack.Screen 
         name="FleetManagement" 
         component={FleetManagementScreen}

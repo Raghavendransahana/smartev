@@ -12,7 +12,7 @@ export type BottomTabParamList = {
   Dashboard: undefined;
   Vehicles: undefined;
   Battery: undefined;
-  Charging: undefined;
+
   More: undefined;
 };
 
@@ -37,9 +37,7 @@ const BottomTabNavigator: React.FC = () => {
             case 'Battery':
               iconName = focused ? 'battery-charging' : 'battery-charging-outline';
               break;
-            case 'Charging':
-              iconName = focused ? 'flash' : 'flash-outline';
-              break;
+            
             case 'More':
               iconName = focused ? 'menu' : 'menu-outline';
               break;
@@ -98,14 +96,7 @@ const BottomTabNavigator: React.FC = () => {
           headerTitle: 'Battery Management',
         }}
       />
-      <Tab.Screen 
-        name="Charging" 
-        component={ChargingSessionsScreen}
-        options={{
-          title: 'Charging',
-          headerTitle: 'Charging Sessions',
-        }}
-      />
+      
       <Tab.Screen 
         name="More" 
         component={MoreScreen}

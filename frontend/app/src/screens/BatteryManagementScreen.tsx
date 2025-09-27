@@ -33,6 +33,8 @@ interface CarDetails {
 const BatteryDashboard: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [batteryLevel, setBatteryLevel] = useState(90);
+  const [stateOfCharge, setStateOfCharge] = useState(90);
+  const [stateOfHealth, setStateOfHealth] = useState(94);
   
   // Animation refs
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -62,11 +64,28 @@ const BatteryDashboard: React.FC = () => {
     }).start();
   }, [batteryLevel]);
 
+  // Generate random values for SOC and SOH (73-97%)
+  const generateRandomBatteryValue = () => Math.floor(Math.random() * (97 - 73 + 1)) + 73;
+
+  // Update SOC and SOH every 2 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newSOC = generateRandomBatteryValue();
+      const newSOH = generateRandomBatteryValue();
+      
+      setStateOfCharge(newSOC);
+      setStateOfHealth(newSOH);
+      setBatteryLevel(newSOC); // Update battery level for animation
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+  
   // Mock data
   const vehicleData = {
     carName: "Tata Punch EV",
     vehicleId: "TN43-EV-2024-7892",
-    batteryPercentage: 90,
+    batteryPercentage: stateOfCharge, // Use dynamic SOC value
     kmsDriven: 4330,
     weeklyKms: 340,
     isCharging: false,
@@ -77,8 +96,8 @@ const BatteryDashboard: React.FC = () => {
     city: "Coimbatore",
     address: "KPR Institute of Engineering, Arasur",
     batteryOwnerStatus: "Owned",
-    stateOfCharge: 90,
-    stateOfHealth: 96,
+    stateOfCharge: stateOfCharge, // Use dynamic SOC
+    stateOfHealth: stateOfHealth, // Use dynamic SOH
     serviceStatus: "up-to-date",
     cyclesCompleted: 847,
     warrantyStatus: "active",

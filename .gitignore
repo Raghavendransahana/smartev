@@ -21,7 +21,6 @@ dist/
 build/
 out/
 coverage/
-coverage/
 *.map
 
 # Python
@@ -57,6 +56,48 @@ logs/
 # Docker
 docker-compose.override.yml
 .env.docker
+
+# React Native / Expo specific
+.expo/
+.expo-shared/
+web-build/
+
+# Blockchain specific (Hardhat)
+artifacts/
+cache/
+deployments/localhost*.json
+
+# Machine Learning models and data
+*.pkl
+*.pth
+*.h5
+*.joblib
+*.model
+*.weights
+*.ckpt
+# Large datasets
+*.csv
+*.json
+*.parquet
+*.hdf5
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+# MLflow
+mlruns/
+# Weights & Biases
+wandb/
+
+# API keys and sensitive data
+*.p12
+*.keystore
+google-services.json
+GoogleService-Info.plist
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
 
 # Misc
 tmp/

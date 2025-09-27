@@ -15,9 +15,10 @@ export interface User {
 
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string, role: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<boolean>
   logout: () => void
   updateUser: (updates: Partial<User>) => void
+  refreshUser: () => Promise<void>
   isLoading: boolean
   isAuthenticated: boolean
   hasRole: (role: UserRole) => boolean
@@ -27,7 +28,27 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api'
+
+// Helper function to map backend roles to frontend roles
+const mapBackendRoleToFrontend = (backendRole: string): UserRole => {
+  switch (backendRole) {
+    case 'admin': return 'Super Admin'
+    case 'service_provider': return 'Admin'
+    case 'owner': return 'Seller'
+    default: return 'Seller'
+  }
+}
+
+// Helper function to get redirect path based on user role
+export const getRedirectPath = (role: UserRole): string => {
+  switch (role) {
+    case 'Super Admin': return '/super-admin'
+    case 'Admin': return '/admin'
+    case 'Seller': return '/seller'
+    default: return '/seller'
+  }
+}
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
@@ -68,8 +89,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/validate`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/users/profile`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -77,8 +98,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        setUser(data.user)
+        const userData = await response.json()
+        // Convert backend user format to frontend User format
+        const user: User = {
+          id: userData._id,
+          name: userData.name,
+          email: userData.email,
+          role: mapBackendRoleToFrontend(userData.role),
+          avatar: undefined,
+          brandId: undefined,
+          isFirstLogin: false,
+          permissions: getPermissionsByRole(userData.role)
+        }
+        setUser(user)
+        localStorage.setItem('user_data', JSON.stringify(user))
         return true
       }
       throw new Error('Token validation failed')
@@ -122,58 +155,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [applyStoredUser, validateToken])
 
-  const login = useCallback(async (email: string, password: string, role: string): Promise<boolean> => {
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true)
     
     try {
       // Try to authenticate with backend API
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, role }),
+        body: JSON.stringify({ email, password }),
       })
 
       if (response.ok) {
         const data = await response.json()
+        // Convert backend user format to frontend User format
+        const user: User = {
+          id: data.user._id,
+          name: data.user.name,
+          email: data.user.email,
+          role: mapBackendRoleToFrontend(data.user.role),
+          avatar: undefined,
+          brandId: undefined,
+          isFirstLogin: false,
+          permissions: getPermissionsByRole(data.user.role)
+        }
+        
         localStorage.setItem('auth_token', data.token)
-        localStorage.setItem('user_data', JSON.stringify(data.user))
-        setUser(data.user)
+        localStorage.setItem('user_data', JSON.stringify(user))
+        setUser(user)
         return true
+      } else {
+        // Handle login failure from backend
+        const errorData = await response.json().catch(() => ({ message: 'Login failed' }))
+        console.error('Login failed:', errorData.message)
+        return false
       }
     } catch (error) {
-      console.error('Backend login failed, using mock data:', error)
-    }
-
-    // Fallback to mock authentication for development
-    try {
-      console.log('Authenticating:', { email, password: '***', role })
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Mock user data based on role
-      const mockUser: User = {
-        id: `user_${Date.now()}`,
-        name: getNameByRole(role),
-        email,
-        role: formatRoleName(role),
-        avatar: undefined,
-        brandId: role === 'admin' ? 'brand-1' : undefined,
-        isFirstLogin: role === 'admin' && !localStorage.getItem(`setup_complete_${email}`),
-        permissions: getPermissionsByRole(role),
-      }
-
-      // Mock token
-      const mockToken = `mock_token_${Date.now()}`
-      
-      // Store in localStorage
-      localStorage.setItem('auth_token', mockToken)
-      localStorage.setItem('user_data', JSON.stringify(mockUser))
-      
-      setUser(mockUser)
-      return true
-    } catch (error) {
-      console.error('Login error:', error)
+      console.error('Login failed:', error)
       return false
     } finally {
       setIsLoading(false)
@@ -194,6 +214,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [user])
 
+  const refreshUser = useCallback(async () => {
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      await validateToken(token)
+    }
+  }, [validateToken])
+
   const hasRole = useCallback((role: UserRole): boolean => {
     return user?.role === role
   }, [user?.role])
@@ -206,33 +233,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return user?.permissions?.includes(permission) || false
   }, [user?.permissions])
 
-  const getNameByRole = (role: string): string => {
-    switch (role.toLowerCase()) {
-      case 'superadmin':
-      case 'super admin':
-        return 'Super Admin'
-      case 'admin':
-        return 'Brand Admin'
-      case 'seller':
-        return 'Sales Agent'
-      default:
-        return 'User'
-    }
-  }
 
-  const formatRoleName = (role: string): UserRole => {
-    switch (role.toLowerCase()) {
-      case 'superadmin':
-      case 'super admin':
-        return 'Super Admin'
-      case 'admin':
-        return 'Admin'
-      case 'seller':
-        return 'Seller'
-      default:
-        return 'Seller'
-    }
-  }
 
   const getPermissionsByRole = (role: string): string[] => {
     switch (role.toLowerCase()) {
@@ -253,12 +254,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     updateUser,
+    refreshUser,
     isLoading,
     isAuthenticated: !!user,
     hasRole,
     canAccess,
     hasPermission,
-  }), [user, login, logout, updateUser, isLoading, hasRole, canAccess, hasPermission])
+  }), [user, login, logout, updateUser, refreshUser, isLoading, hasRole, canAccess, hasPermission])
 
   return (
     <AuthContext.Provider value={value}>

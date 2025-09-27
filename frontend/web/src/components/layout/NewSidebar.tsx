@@ -6,7 +6,6 @@ import {
   Building2, 
   AlertTriangle, 
   ShoppingCart,
-  Settings,
   User,
   Bell,
   BarChart3,
@@ -56,18 +55,18 @@ const getNavigationByRole = (role: UserRole): NavigationItem[] => {
           icon: LayoutDashboard,
           roles: ['Super Admin'] as UserRole[],
         },
-        {
-          name: 'Brand Management',
-          href: '/super-admin/brands',
-          icon: Building2,
-          roles: ['Super Admin'] as UserRole[],
-        },
-        {
-          name: 'Admin Management',
-          href: '/super-admin/admins',
-          icon: Users,
-          roles: ['Super Admin'] as UserRole[],
-        },
+        // {
+        //   name: 'Brand Management',
+        //   href: '/super-admin/brands',
+        //   icon: Building2,
+        //   roles: ['Super Admin'] as UserRole[],
+        // },
+        // {
+        //   name: 'Admin Management',
+        //   href: '/super-admin/admins',
+        //   icon: Users,
+        //   roles: ['Super Admin'] as UserRole[],
+        // },
         {
           name: 'User Management',
           href: '/super-admin/users',
@@ -86,13 +85,7 @@ const getNavigationByRole = (role: UserRole): NavigationItem[] => {
           icon: Car,
           roles: ['Super Admin'] as UserRole[],
         },
-        {
-          name: 'Complaints',
-          href: '/super-admin/complaints',
-          icon: AlertTriangle,
-          roles: ['Super Admin'] as UserRole[],
-          badge: 8,
-        },
+      
         {
           name: 'Analytics',
           href: '/super-admin/analytics',
@@ -117,7 +110,7 @@ const getNavigationByRole = (role: UserRole): NavigationItem[] => {
           roles: ['Admin'] as UserRole[],
         },
         {
-          name: 'Vehicle & Battery',
+          name: 'Vehicle Mapping',
           href: '/admin/vehicles',
           icon: Car,
           roles: ['Admin'] as UserRole[],
@@ -129,17 +122,17 @@ const getNavigationByRole = (role: UserRole): NavigationItem[] => {
           roles: ['Admin'] as UserRole[],
         },
         {
-          name: 'Analytics',
-          href: '/admin/analytics',
-          icon: BarChart3,
-          roles: ['Admin'] as UserRole[],
-        },
-        {
-          name: 'Complaints',
-          href: '/admin/complaints',
+          name: 'Support Center',
+          href: '/admin/support',
           icon: AlertTriangle,
           roles: ['Admin'] as UserRole[],
-          badge: 3,
+          badge: 15,
+        },
+        {
+          name: 'Reports',
+          href: '/admin/reports',
+          icon: BarChart3,
+          roles: ['Admin'] as UserRole[],
         },
         ...commonItems,
       ]
@@ -215,9 +208,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         className={cn(
           'flex flex-col bg-white border-r border-gray-200',
           isMobile
-            ? 'fixed left-0 top-0 h-full w-72 z-50 lg:hidden'
+            ? 'fixed left-0 top-0 h-screen w-72 z-50 lg:hidden'
             : cn(
-                'hidden lg:flex',
+                'hidden lg:flex h-screen',
                 isCollapsed ? 'w-16' : 'w-72'
               ),
           'transition-all duration-300 ease-in-out'
@@ -225,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Logo/Brand */}
         <div className={cn(
-          'flex items-center px-6 py-4 border-b border-gray-200',
+          'flex items-center px-6 py-4 border-b border-gray-200 flex-shrink-0',
           isCollapsed && !isMobile && 'px-4'
         )}>
           <div className="flex items-center space-x-2">
@@ -243,7 +236,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* User info */}
         <div className={cn(
-          'px-6 py-4 border-b border-gray-200',
+          'px-6 py-4 border-b border-gray-200 flex-shrink-0',
           isCollapsed && !isMobile && 'px-4'
         )}>
           <div className="flex items-center space-x-3">
@@ -266,9 +259,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-4 space-y-2">
+        <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto min-h-0">
           {navigationItems.map((item) => {
-            const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+            // Check if this is a dashboard route
+            const isDashboardRoute = item.href === '/super-admin' || item.href === '/admin' || item.href === '/seller'
+            
+            // For dashboard routes, only match exact path. For other routes, allow sub-paths.
+            const isActive = isDashboardRoute 
+              ? location.pathname === item.href
+              : location.pathname === item.href || location.pathname.startsWith(item.href + '/')
             
             return (
               <NavLink
@@ -304,7 +303,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Notifications (if not collapsed) */}
         {(!isCollapsed || isMobile) && (
-          <div className="px-4 py-3 border-t border-gray-200">
+          <div className="px-4 py-3 border-t border-gray-200 flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
@@ -319,23 +318,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        {/* Settings and Logout */}
+        {/* Logout */}
         <div className={cn(
-          'px-4 py-4 border-t border-gray-200 space-y-2',
+          'px-4 py-4 border-t border-gray-200 flex-shrink-0',
           isCollapsed && !isMobile && 'px-2'
         )}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              'w-full text-gray-600 hover:text-gray-900 hover:bg-gray-100',
-              isCollapsed && !isMobile ? 'justify-center px-2' : 'justify-start'
-            )}
-          >
-            <Settings size={16} className={!isCollapsed || isMobile ? 'mr-2' : ''} />
-            {(!isCollapsed || isMobile) && 'Settings'}
-          </Button>
-          
           <Button
             variant="ghost"
             size="sm"

@@ -4,10 +4,16 @@ import { ProtectedRoute, RoleBasedRedirect } from './components/auth/ProtectedRo
 import { LoginPage } from './pages/LoginPage'
 import { SuperAdminDashboard } from './pages/NewSuperAdminDashboard'
 import { AdminDashboard } from './pages/AdminDashboard'
+import { EnhancedSuperAdminDashboard } from './pages/EnhancedSuperAdminDashboard'
+import { EnhancedAdminDashboard } from './pages/EnhancedAdminDashboard'
 import { SellerDashboard } from './pages/SellerDashboard'
+import { SellerMarketplace } from './pages/SellerMarketplace'
+import { SellerTransactions } from './pages/SellerTransactions'
+import { SellerEcoAnalytics } from './pages/SellerEcoAnalytics'
 import { UserManagement } from './pages/UserManagement'
 import { EVStations } from './pages/EVStations'
 import { VehicleBatteryManagement } from './pages/VehicleBatteryManagement'
+import { ProfilePage } from './pages/ProfilePage'
 import { Layout } from './components/layout/Layout'
 
 function App() {
@@ -23,7 +29,7 @@ function App() {
             <Route path="/super-admin" element={
               <ProtectedRoute requiredRoles={['Super Admin']}>
                 <Layout>
-                  <SuperAdminDashboard />
+                  <EnhancedSuperAdminDashboard />
                 </Layout>
               </ProtectedRoute>
             } />
@@ -44,10 +50,26 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/super-admin/vehicles" element={
+              <ProtectedRoute requiredRoles={['Super Admin']}>
+                <Layout>
+                  <VehicleBatteryManagement />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/super-admin/analytics" element={
+              <ProtectedRoute requiredRoles={['Super Admin']}>
+                <Layout>
+                  <SuperAdminDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
             <Route path="/admin" element={
               <ProtectedRoute requiredRoles={['Admin']}>
                 <Layout>
-                  <AdminDashboard />
+                  <EnhancedAdminDashboard />
                 </Layout>
               </ProtectedRoute>
             } />
@@ -76,6 +98,22 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/admin/support" element={
+              <ProtectedRoute requiredRoles={['Admin']}>
+                <Layout>
+                  <UserManagement />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin/reports" element={
+              <ProtectedRoute requiredRoles={['Admin']}>
+                <Layout>
+                  <SuperAdminDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
             <Route path="/super-admin/vehicles" element={
               <ProtectedRoute requiredRoles={['Super Admin']}>
                 <Layout>
@@ -88,6 +126,39 @@ function App() {
               <ProtectedRoute requiredRoles={['Seller']}>
                 <Layout>
                   <SellerDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/seller/marketplace" element={
+              <ProtectedRoute requiredRoles={['Seller']}>
+                <Layout>
+                  <SellerMarketplace />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/seller/transactions" element={
+              <ProtectedRoute requiredRoles={['Seller']}>
+                <Layout>
+                  <SellerTransactions />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/seller/eco-analytics" element={
+              <ProtectedRoute requiredRoles={['Seller']}>
+                <Layout>
+                  <SellerEcoAnalytics />
+                </Layout>
+              </ProtectedRoute>
+            } />
+
+            {/* Profile Routes - Available to all authenticated users */}
+            <Route path="/profile" element={
+              <ProtectedRoute requiredRoles={['Super Admin', 'Admin', 'Seller']}>
+                <Layout>
+                  <ProfilePage />
                 </Layout>
               </ProtectedRoute>
             } />

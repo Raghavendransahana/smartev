@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth, type UserRole } from '../../contexts/AuthContext';
+import { useAuth, type UserRole, getRedirectPath } from '../../contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -57,14 +57,5 @@ export const RoleBasedRedirect: React.FC = () => {
   }
 
   // Redirect based on user role
-  switch (user.role) {
-    case 'Super Admin':
-      return <Navigate to="/super-admin" replace />;
-    case 'Admin':
-      return <Navigate to="/admin" replace />;
-    case 'Seller':
-      return <Navigate to="/seller" replace />;
-    default:
-      return <Navigate to="/login" replace />;
-  }
+  return <Navigate to={getRedirectPath(user.role)} replace />;
 };

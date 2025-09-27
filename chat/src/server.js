@@ -133,7 +133,6 @@ const startServer = async () => {
       console.log('\n🚀 FlexiEV Chat Service Started!');
       console.log(`📡 Server running on http://localhost:${PORT}`);
       console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🤖 Model: Llama3-8B via Groq with specialized EV system prompt`);
       console.log('\n📋 Available Endpoints:');
       console.log(`   GET  /                 - Service information`);
       console.log(`   GET  /api/health       - Health check`);

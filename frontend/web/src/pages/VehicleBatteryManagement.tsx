@@ -463,7 +463,7 @@ export const VehicleBatteryManagement: React.FC = () => {
                 <Input
                   value={vehicleFormData.brand}
                   onChange={(e) => setVehicleFormData({ ...vehicleFormData, brand: e.target.value })}
-                  placeholder="e.g., Tesla, BMW, Nissan"
+                  placeholder="e.g., Tata Motors, Mahindra, Ather Energy"
                 />
               </div>
               <div>

@@ -33,7 +33,8 @@ interface User {
 }
 
 interface UserFormData {
-  name: string
+  firstName: string
+  lastName: string
   email: string
   phone: string
   role: 'Super Admin' | 'Admin' | 'Seller' | 'User'
@@ -111,7 +112,8 @@ export const UserManagement: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [formData, setFormData] = useState<UserFormData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     role: 'User',
@@ -250,24 +252,38 @@ export const UserManagement: React.FC = () => {
       setLoading(true)
       setError(null)
       
+      // Validate required fields
+      if (!formData.firstName.trim()) {
+        setError('First name is required')
+        setLoading(false)
+        return
+      }
+      
+      if (!formData.lastName.trim()) {
+        setError('Last name is required')
+        setLoading(false)
+        return
+      }
+      
+      if (!formData.email.trim()) {
+        setError('Email is required')
+        setLoading(false)
+        return
+      }
+      
       // Map frontend role to API role
       let apiRole: 'owner' | 'oem' | 'regulator' | 'service_provider' | 'admin' = 'owner'
       if (formData.role === 'Admin') apiRole = 'admin'
       else if (formData.role === 'Seller') apiRole = 'oem'
       else if (formData.role === 'Super Admin') apiRole = 'service_provider'
       
-      // Split name into first and last name
-      const nameParts = formData.name.split(' ')
-      const firstName = nameParts[0] || ''
-      const lastName = nameParts.slice(1).join(' ') || ''
-      
       await apiService.createUser({
         email: formData.email,
         password: 'temp123!', // Default password, should be changed on first login
         role: apiRole,
         profile: {
-          firstName,
-          lastName,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           phone: formData.phone
         }
       })
@@ -290,6 +306,25 @@ export const UserManagement: React.FC = () => {
       setLoading(true)
       setError(null)
       
+      // Validate required fields
+      if (!formData.firstName.trim()) {
+        setError('First name is required')
+        setLoading(false)
+        return
+      }
+      
+      if (!formData.lastName.trim()) {
+        setError('Last name is required')
+        setLoading(false)
+        return
+      }
+      
+      if (!formData.email.trim()) {
+        setError('Email is required')
+        setLoading(false)
+        return
+      }
+      
       // Map frontend role to API role
       let apiRole: 'owner' | 'oem' | 'regulator' | 'service_provider' | 'admin' = 'owner'
       if (formData.role === 'Admin') apiRole = 'admin'
@@ -297,7 +332,7 @@ export const UserManagement: React.FC = () => {
       else if (formData.role === 'Super Admin') apiRole = 'service_provider'
       
       await apiService.updateUser(selectedUser.id, {
-        name: formData.name,
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
         role: apiRole
       })
@@ -336,8 +371,13 @@ export const UserManagement: React.FC = () => {
 
   const openEditModal = (user: User) => {
     setSelectedUser(user)
+    const nameParts = user.name.split(' ')
+    const firstName = nameParts[0] || ''
+    const lastName = nameParts.slice(1).join(' ') || ''
+    
     setFormData({
-      name: user.name,
+      firstName,
+      lastName,
       email: user.email,
       phone: user.phone,
       role: user.role,
@@ -354,7 +394,8 @@ export const UserManagement: React.FC = () => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       phone: '',
       role: 'User',
@@ -593,14 +634,27 @@ export const UserManagement: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New User</h3>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="Enter user name"
-                  className="bg-white border-gray-300"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                  <Input
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    placeholder="Enter first name"
+                    className="bg-white border-gray-300"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                  <Input
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    placeholder="Enter last name"
+                    className="bg-white border-gray-300"
+                    required
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -684,13 +738,25 @@ export const UserManagement: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit User</h3>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="bg-white border-gray-300"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                  <Input
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                    className="bg-white border-gray-300"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                  <Input
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                    className="bg-white border-gray-300"
+                    required
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>

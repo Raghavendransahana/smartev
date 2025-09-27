@@ -47,7 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
       {/* Sidebar - Desktop */}
       {!isMobile && (
         <Sidebar
@@ -67,9 +67,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       )}
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col min-h-screen">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 lg:px-6 h-16 flex items-center justify-between">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Header - Fixed */}
+        <div className="bg-white border-b border-gray-200 px-4 lg:px-6 h-16 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center space-x-4">
             <button
               onClick={handleSidebarToggle}
@@ -89,7 +89,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           )}
         </div>
 
-        {/* Page content */}
+        {/* Page content - Scrollable */}
         <main 
           className={cn(
             'flex-1 overflow-y-auto',

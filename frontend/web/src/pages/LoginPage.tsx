@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { Navigate } from 'react-router-dom'
+import { useAuth, getRedirectPath } from '../contexts/AuthContext'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
@@ -8,21 +8,16 @@ import { Zap } from 'lucide-react'
 
 export const LoginPage: React.FC = () => {
   const { user, login, isLoading } = useAuth()
-  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    role: 'Admin',
   })
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Redirect if already authenticated
   if (user) {
-    const redirectPath = user.role === 'Super Admin' ? '/super-admin' 
-                       : user.role === 'Admin' ? '/admin'
-                       : '/seller'
-    return <Navigate to={redirectPath} replace />
+    return <Navigate to={getRedirectPath(user.role)} replace />
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,12 +26,10 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true)
 
     try {
-      const success = await login(formData.email, formData.password, formData.role)
+      const success = await login(formData.email, formData.password)
       if (success) {
-        const redirectPath = formData.role === 'Super Admin' ? '/super-admin'
-                            : formData.role === 'Admin' ? '/admin'
-                            : '/seller'
-        navigate(redirectPath)
+        // User will be redirected automatically by the Navigate component
+        // when the user state is updated
       } else {
         setError('Invalid credentials. Please check your email and password.')
       }
@@ -117,23 +110,6 @@ export const LoginPage: React.FC = () => {
                   placeholder="Enter your password"
                   className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-emerald-500"
                 />
-              </div>
-
-              {/* Role Selection */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Select Role
-                </label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-emerald-500 focus:border-emerald-500 focus:ring-2"
-                >
-                  <option value="Super Admin">Super Admin</option>
-                  <option value="Admin">Brand Admin</option>
-                  <option value="Seller">Sales Agent</option>
-                </select>
               </div>
 
               {/* Error Message */}

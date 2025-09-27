@@ -48,6 +48,17 @@ interface UpdateUserData {
   role?: 'owner' | 'oem' | 'regulator' | 'service_provider' | 'admin';
 }
 
+interface UpdateProfileData {
+  name?: string;
+  profile?: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  };
+  currentPassword?: string;
+  newPassword?: string;
+}
+
 // Vehicle interfaces
 interface Vehicle {
   _id: string;
@@ -125,7 +136,7 @@ interface VehicleUserMapping {
 
 class ApiService {
   private getAuthToken(): string | null {
-    return localStorage.getItem('token');
+    return localStorage.getItem('auth_token');
   }
 
   private async request<T>(
@@ -153,7 +164,8 @@ class ApiService {
         // Handle 401 Unauthorized - clear token and throw specific error
         if (response.status === 401) {
           console.log('Unauthorized - clearing token');
-          localStorage.removeItem('token');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_data');
           throw new Error('Authentication required');
         }
         
@@ -257,6 +269,13 @@ class ApiService {
     return this.request('/users/profile');
   }
 
+  async updateProfile(profileData: UpdateProfileData): Promise<{ message: string; user: User }> {
+    return this.request('/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  }
+
   // Vehicle management methods
   async getVehicles(): Promise<Vehicle[]> {
     return this.request('/vehicles');
@@ -354,6 +373,275 @@ class ApiService {
 
     return mappings;
   }
+
+  // Seller/Marketplace specific methods
+  async getBatteryListings(filters?: any): Promise<any[]> {
+    const queryParams = new URLSearchParams();
+    if (filters?.type) queryParams.append('type', filters.type);
+    if (filters?.status) queryParams.append('status', filters.status);
+    if (filters?.priceMin) queryParams.append('priceMin', filters.priceMin.toString());
+    if (filters?.priceMax) queryParams.append('priceMax', filters.priceMax.toString());
+    
+    const url = `/marketplace/batteries${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    return this.request(url);
+  }
+
+  async getSellerTransactions(filters?: any): Promise<any[]> {
+    const queryParams = new URLSearchParams();
+    if (filters?.type) queryParams.append('type', filters.type);
+    if (filters?.status) queryParams.append('status', filters.status);
+    if (filters?.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
+    if (filters?.dateTo) queryParams.append('dateTo', filters.dateTo);
+    
+    const url = `/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    return this.request(url);
+  }
+
+  async getEcoMetrics(period?: string): Promise<any> {
+    const url = `/analytics/eco${period ? '?period=' + period : ''}`;
+    return this.request(url);
+  }
+
+  async getEcoTrends(period?: string): Promise<any[]> {
+    const url = `/analytics/eco/trends${period ? '?period=' + period : ''}`;
+    return this.request(url);
+  }
+
+  async getCertifications(): Promise<any[]> {
+    return this.request('/certifications');
+  }
+
+  async getEcoGoals(): Promise<any[]> {
+    return this.request('/goals/eco');
+  }
+
+  async getSellerDashboardStats(): Promise<any> {
+    return this.request('/analytics/seller/dashboard');
+  }
+
+  async createBatteryListing(listingData: any): Promise<any> {
+    return this.request('/marketplace/batteries', {
+      method: 'POST',
+      body: JSON.stringify(listingData),
+    });
+  }
+
+  async updateBatteryListing(listingId: string, updateData: any): Promise<any> {
+    return this.request(`/marketplace/batteries/${listingId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  }
+
+  async deleteBatteryListing(listingId: string): Promise<any> {
+    return this.request(`/marketplace/batteries/${listingId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Super Admin API methods
+  async getDashboardStats(): Promise<any> {
+    return this.request('/admin/super/dashboard/stats');
+  }
+
+  async getRecentActivities(limit: number = 10): Promise<any> {
+    return this.request(`/admin/super/activities?limit=${limit}`);
+  }
+
+  async getSystemMetrics(): Promise<any> {
+    return this.request('/admin/super/system/metrics');
+  }
+
+  async getPendingActions(): Promise<any> {
+    return this.request('/admin/super/actions/pending');
+  }
+
+  async handlePendingAction(actionId: string, action: string): Promise<any> {
+    return this.request(`/admin/super/actions/${actionId}`, {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+    });
+  }
+
+  async getSystemUsers(params?: GetUsersParams): Promise<GetUsersResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.role) queryParams.append('role', params.role);
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    return this.request(`/admin/super/users?${queryParams.toString()}`);
+  }
+
+  async approveUser(userId: string): Promise<any> {
+    return this.request(`/admin/super/users/${userId}/approve`, {
+      method: 'POST',
+    });
+  }
+
+  async suspendUser(userId: string, reason: string): Promise<any> {
+    return this.request(`/admin/super/users/${userId}/suspend`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async getSystemAnalytics(timeRange: string = '30d'): Promise<any> {
+    return this.request(`/admin/super/analytics?range=${timeRange}`);
+  }
+
+  async getEVStations(region?: string): Promise<any> {
+    const url = region ? `/admin/super/stations?region=${region}` : '/admin/super/stations';
+    return this.request(url);
+  }
+
+  async createEVStation(stationData: any): Promise<any> {
+    return this.request('/admin/super/stations', {
+      method: 'POST',
+      body: JSON.stringify(stationData),
+    });
+  }
+
+  async updateEVStation(stationId: string, updateData: any): Promise<any> {
+    return this.request(`/admin/super/stations/${stationId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  }
+
+  async deleteEVStation(stationId: string): Promise<any> {
+    return this.request(`/admin/super/stations/${stationId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Admin (Regional) API methods
+  async getAdminDashboardStats(region?: string): Promise<any> {
+    const url = region ? `/admin/dashboard/stats?region=${region}` : '/admin/dashboard/stats';
+    return this.request(url);
+  }
+
+  async getRegionActivities(region?: string, limit: number = 10): Promise<any> {
+    const params = new URLSearchParams();
+    if (region) params.append('region', region);
+    params.append('limit', limit.toString());
+    return this.request(`/admin/activities?${params.toString()}`);
+  }
+
+  async getAdminTasks(status?: string): Promise<any> {
+    const url = status ? `/admin/tasks?status=${status}` : '/admin/tasks';
+    return this.request(url);
+  }
+
+  async getRegionMetrics(region?: string): Promise<any> {
+    const url = region ? `/admin/metrics?region=${region}` : '/admin/metrics';
+    return this.request(url);
+  }
+
+  async updateTaskStatus(taskId: string, status: string): Promise<any> {
+    return this.request(`/admin/tasks/${taskId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async assignTask(taskId: string, assignedTo: string): Promise<any> {
+    return this.request(`/admin/tasks/${taskId}/assign`, {
+      method: 'POST',
+      body: JSON.stringify({ assignedTo }),
+    });
+  }
+
+  async getRegionUsers(region?: string, params?: GetUsersParams): Promise<GetUsersResponse> {
+    const queryParams = new URLSearchParams();
+    if (region) queryParams.append('region', region);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.role) queryParams.append('role', params.role);
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params?.sortOrder) queryParams.append('sortOrder', params.sortOrder);
+    
+    return this.request(`/admin/users?${queryParams.toString()}`);
+  }
+
+  async getRegionVehicles(region?: string): Promise<any> {
+    const url = region ? `/admin/vehicles?region=${region}` : '/admin/vehicles';
+    return this.request(url);
+  }
+
+  async getSupportTickets(status?: string, priority?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (priority) params.append('priority', priority);
+    return this.request(`/admin/support/tickets?${params.toString()}`);
+  }
+
+  async createSupportTicket(ticketData: any): Promise<any> {
+    return this.request('/admin/support/tickets', {
+      method: 'POST',
+      body: JSON.stringify(ticketData),
+    });
+  }
+
+  async updateSupportTicket(ticketId: string, updateData: any): Promise<any> {
+    return this.request(`/admin/support/tickets/${ticketId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
+  }
+
+  async resolveSupportTicket(ticketId: string, resolution: string): Promise<any> {
+    return this.request(`/admin/support/tickets/${ticketId}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify({ resolution }),
+    });
+  }
+
+  async getRegionReports(reportType: string, timeRange: string = '30d'): Promise<any> {
+    return this.request(`/admin/reports/${reportType}?range=${timeRange}`);
+  }
+
+  async exportRegionData(dataType: string, format: string = 'csv'): Promise<Blob> {
+    const token = this.getAuthToken();
+    const response = await fetch(`${API_BASE_URL}/admin/export/${dataType}?format=${format}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Export failed: ${response.statusText}`);
+    }
+    
+    return response.blob();
+  }
+
+  // User approval and management methods for admins
+  async reviewUserApplication(userId: string, decision: 'approve' | 'reject', notes?: string): Promise<any> {
+    return this.request(`/admin/users/${userId}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ decision, notes }),
+    });
+  }
+
+  async sendUserNotification(userId: string, message: string, type: string = 'info'): Promise<any> {
+    return this.request(`/admin/users/${userId}/notify`, {
+      method: 'POST',
+      body: JSON.stringify({ message, type }),
+    });
+  }
+
+  async bulkUserAction(userIds: string[], action: string, data?: any): Promise<any> {
+    return this.request('/admin/users/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ userIds, action, data }),
+    });
+  }
 }
 
 export const apiService = new ApiService();
@@ -362,6 +650,7 @@ export type {
   GetUsersParams, 
   CreateUserData, 
   UpdateUserData, 
+  UpdateProfileData,
   GetUsersResponse, 
   PaginationInfo,
   Vehicle,

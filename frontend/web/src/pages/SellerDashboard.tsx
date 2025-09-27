@@ -1,9 +1,11 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
-import { Battery, ShoppingCart, TrendingUp, Leaf, DollarSign, Package, Zap } from 'lucide-react'
+import { Battery, ShoppingCart, TrendingUp, Leaf, DollarSign, Package, Zap, AlertCircle, ArrowRight, Eye } from 'lucide-react'
+import { apiService } from '../services/api.service'
+import { Link } from 'react-router-dom'
 
 interface BatteryListingProps {
   id: string
@@ -45,7 +47,7 @@ const BatteryCard: React.FC<{ battery: BatteryListingProps }> = ({ battery }) =>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-600">Price:</span>
-        <span className="text-gray-900 font-semibold">${battery.price.toLocaleString()}</span>
+        <span className="text-gray-900 font-semibold">₹{battery.price.toLocaleString()}</span>
       </div>
     </div>
 
@@ -62,12 +64,12 @@ export const SellerDashboard: React.FC = () => {
   const batteryListings: BatteryListingProps[] = [
     {
       id: '1',
-      brand: 'Tesla',
+      brand: 'Tata Motors',
       model: 'Model S 2020',
       soh: 87,
       price: 12500,
       remainingLife: '8-10 years',
-      location: 'California, USA',
+      location: 'Coimbatore, Tamil Nadu',
       eco_impact: {
         co2_saved: 45,
         recycled_materials: ['Lithium', 'Cobalt', 'Nickel']
@@ -80,7 +82,7 @@ export const SellerDashboard: React.FC = () => {
       soh: 74,
       price: 8900,
       remainingLife: '5-7 years',
-      location: 'Texas, USA',
+      location: 'Salem, Tamil Nadu',
       eco_impact: {
         co2_saved: 32,
         recycled_materials: ['Lithium', 'Manganese']
@@ -93,7 +95,7 @@ export const SellerDashboard: React.FC = () => {
       soh: 92,
       price: 9800,
       remainingLife: '10-12 years',
-      location: 'Florida, USA',
+      location: 'Tirupur, Tamil Nadu',
       eco_impact: {
         co2_saved: 51,
         recycled_materials: ['Lithium', 'Cobalt']
@@ -123,7 +125,7 @@ export const SellerDashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-gray-600 text-sm">Total Sales</p>
-              <p className="text-2xl font-bold text-gray-900">$47,350</p>
+              <p className="text-2xl font-bold text-gray-900">₹47,350</p>
               <p className="text-emerald-400 text-xs">+18% this month</p>
             </div>
           </div>
@@ -162,7 +164,7 @@ export const SellerDashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-gray-600 text-sm">Commission</p>
-              <p className="text-2xl font-bold text-gray-900">$2,368</p>
+              <p className="text-2xl font-bold text-gray-900">₹2,368</p>
               <p className="text-emerald-400 text-xs">12% avg rate</p>
             </div>
           </div>
@@ -205,15 +207,15 @@ export const SellerDashboard: React.FC = () => {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-700">This Month</span>
-              <span className="text-gray-900 font-semibold">$8,450</span>
+              <span className="text-gray-900 font-semibold">₹8,450</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-700">Average Sale</span>
-              <span className="text-gray-900 font-semibold">$2,063</span>
+              <span className="text-gray-900 font-semibold">₹2,063</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-700">Best Seller</span>
-              <span className="text-gray-900 font-semibold">Tesla Batteries</span>
+              <span className="text-gray-900 font-semibold">Tata Motors Batteries</span>
             </div>
             <div className="pt-2 border-t border-gray-200">
               <div className="flex items-center justify-between">
@@ -228,24 +230,91 @@ export const SellerDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Battery Marketplace */}
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link to="/seller/marketplace">
+          <Card className="p-4 border-gray-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-gray-900">Marketplace</h4>
+                <p className="text-sm text-gray-600">Browse & buy batteries</p>
+              </div>
+              <ShoppingCart className="text-emerald-600" size={24} />
+            </div>
+          </Card>
+        </Link>
+        
+        <Link to="/seller/transactions">
+          <Card className="p-4 border-gray-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-gray-900">Transactions</h4>
+                <p className="text-sm text-gray-600">View sales history</p>
+              </div>
+              <DollarSign className="text-blue-600" size={24} />
+            </div>
+          </Card>
+        </Link>
+        
+        <Link to="/seller/eco-analytics">
+          <Card className="p-4 border-gray-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-gray-900">Eco Analytics</h4>
+                <p className="text-sm text-gray-600">Environmental impact</p>
+              </div>
+              <Leaf className="text-green-600" size={24} />
+            </div>
+          </Card>
+        </Link>
+        
+        <Card className="p-4 border-gray-200 bg-white hover:shadow-lg transition-shadow cursor-pointer">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-gray-900">Inventory</h4>
+              <p className="text-sm text-gray-600">Manage listings</p>
+            </div>
+            <Package className="text-purple-600" size={24} />
+          </div>
+        </Card>
+      </div>
+
+      {/* Battery Marketplace Preview */}
       <Card className="p-6 border-gray-200 bg-white">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-gray-900 flex items-center">
             <Package className="mr-2 text-blue-400" size={20} />
-            Available Battery Listings
+            Featured Battery Listings
           </h3>
-          <Button variant="outline" className="border-zinc-700 text-gray-700 hover:bg-gray-100">
-            <Zap size={16} className="mr-2" />
-            Filter by SoH
-          </Button>
+          <div className="flex space-x-2">
+            <Button variant="outline" className="border-zinc-700 text-gray-700 hover:bg-gray-100">
+              <Zap size={16} className="mr-2" />
+              Filter by SoH
+            </Button>
+            <Link to="/seller/marketplace">
+              <Button>
+                View All <ArrowRight size={16} className="ml-2" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {batteryListings.map((battery) => (
+          {batteryListings.slice(0, 3).map((battery) => (
             <BatteryCard key={battery.id} battery={battery} />
           ))}
         </div>
+        
+        {batteryListings.length > 3 && (
+          <div className="mt-6 text-center">
+            <Link to="/seller/marketplace">
+              <Button variant="outline">
+                <Eye size={16} className="mr-2" />
+                View {batteryListings.length - 3} More Listings
+              </Button>
+            </Link>
+          </div>
+        )}
       </Card>
     </div>
   )

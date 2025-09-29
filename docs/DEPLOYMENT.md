@@ -83,7 +83,7 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=development
-      - MONGODB_URI=mongodb://mongo:27017/smartev_dev
+     
     depends_on:
       - mongo
 

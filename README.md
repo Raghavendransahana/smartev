@@ -48,40 +48,58 @@ SmartEV is a comprehensive electric vehicle ecosystem platform that combines blo
 ## 🌟 Key Features
 
 ### 🔋 Battery Lifecycle Management
+
 - **Digital Battery Passports**: Blockchain-based immutable battery records
 - **Real-time Health Monitoring**: AI-powered battery degradation analysis
 - **Predictive Maintenance**: ML models for optimal battery performance
 - **Recycling Tracking**: Complete end-of-life battery management
+- **Battery Analytics**: Comprehensive performance metrics and trends
+- **Health Score Tracking**: Real-time battery condition monitoring
 
 ### 📱 Multi-Platform Applications
+
 - **Web Dashboard**: React-based admin and user interfaces
-- **Mobile App**: Cross-platform React Native application
+- **Mobile App**: Cross-platform React Native application with Expo
 - **Progressive Web App**: Responsive web application for mobile devices
 - **Admin Panel**: Comprehensive management interface
+- **Super Admin Dashboard**: Advanced system-wide management tools
+- **Fleet Management Interface**: Multi-vehicle oversight capabilities
 
 ### 🤖 AI-Powered Analytics
+
 - **Battery Twin Technology**: Digital twins for real-time battery simulation
 - **Predictive Analytics**: Usage pattern analysis and optimization
 - **Smart Recommendations**: AI-driven charging and maintenance suggestions
 - **Anomaly Detection**: ML-based fault detection and alerting
+- **Performance Optimization**: AI-driven efficiency improvements
+- **Usage Pattern Recognition**: Machine learning-based behavior analysis
 
 ### 🗺️ Charging Network Integration
+
 - **Open Charge Map**: Real-time charging station data from global community
 - **Route Planning**: Smart charging route optimization
 - **Station Management**: Admin tools for charging infrastructure
 - **Real-time Availability**: Live charging station status updates
+- **Multi-brand Support**: Integration with various charging networks
+- **Session Management**: Complete charging session tracking
 
 ### 💬 Intelligent Chat Assistant
+
 - **RAG-based AI**: Context-aware EV assistance and support
 - **Multi-language Support**: Support for Indian regional languages
 - **Voice Integration**: Speech-to-text and text-to-speech capabilities
 - **Knowledge Base**: Comprehensive EV information and troubleshooting
+- **Groq AI Integration**: Advanced language model capabilities
+- **File Upload Support**: Document and image analysis capabilities
 
 ### 🔗 Blockchain Integration
+
 - **Smart Contracts**: Automated transactions and agreements
 - **Ownership Tracking**: Immutable ownership and transfer records
 - **Supply Chain Transparency**: Complete EV component traceability
 - **Decentralized Identity**: Secure user and device identity management
+- **Battery Passport Registry**: Blockchain-based battery lifecycle tracking
+- **Transaction History**: Complete audit trail of all operations
 
 ## 🛠️ Technology Stack
 
@@ -125,7 +143,7 @@ SmartEV is a comprehensive electric vehicle ecosystem platform that combines blo
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/smartev.git
+git clone https://github.com/Raghavendransahana/smartev.git
 cd smartev
 ```
 
@@ -211,38 +229,96 @@ PORT=3001
 CORS_ORIGIN=http://localhost:5173
 ```
 
-## 📊 API Documentation
+**Mobile App** (`frontend/app/.env`):
+```env
+API_BASE_URL=http://localhost:4000/api
+CHAT_API_URL=http://localhost:3001
+```
+
+## � Mobile Application Features
+
+The React Native mobile application includes comprehensive EV management capabilities:
+
+### Core Screens
+- **Dashboard Screen**: Overview of vehicle status and key metrics
+- **Vehicle Management**: Add, edit, and manage multiple vehicles
+- **Battery Management**: Real-time battery monitoring and analytics
+- **Analytics Screen**: Detailed vehicle performance insights
+- **Fleet Management**: Multi-vehicle oversight for fleet operators
+- **Charging Sessions**: Track and manage charging activities
+- **Blockchain Explorer**: View blockchain transactions and battery passports
+- **Settings**: App configuration and user preferences
+- **System Info**: Application and system information
+- **Integration Status**: Monitor external service connections
+
+### Smart Features
+- **Chat Integration**: AI-powered EV assistant with context awareness
+- **Real-time Telemetry**: Live vehicle data monitoring
+- **Offline Capabilities**: Core functionality works without internet
+- **Multi-theme Support**: Dark/light theme options
+- **Authentication**: Secure login with JWT tokens
+- **Push Notifications**: Real-time alerts and updates
+
+### Technical Implementation
+- **Cross-platform**: Single codebase for iOS and Android
+- **Expo Framework**: Streamlined development and deployment
+- **TypeScript**: Full type safety throughout the application
+- **Context API**: Efficient state management
+- **RESTful Integration**: Seamless API communication
 
 ### Core Endpoints
 
-#### Authentication
+#### Authentication & User Management
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User authentication
-- `GET /api/auth/profile` - Get user profile
-- `PUT /api/auth/profile` - Update user profile
+- `GET /api/user/profile` - Get user profile
+- `PUT /api/user/profile` - Update user profile
+- `GET /api/system/health` - System health check
+- `GET /api/system/info` - System information
 
 #### Vehicle Management
 - `GET /api/vehicles` - List user vehicles
 - `POST /api/vehicles` - Register new vehicle
 - `GET /api/vehicles/:id` - Get vehicle details
 - `PUT /api/vehicles/:id` - Update vehicle information
+- `DELETE /api/vehicles/:id` - Remove vehicle
 
 #### Battery Management
 - `POST /api/battery/log` - Log battery data
 - `GET /api/battery/:vehicleId/history` - Get battery history
 - `GET /api/battery/:vehicleId/analytics` - Get battery analytics
 - `POST /api/battery/passport` - Create battery passport
+- `GET /api/battery/:vehicleId/health` - Get battery health score
 
 #### Charging Management
 - `POST /api/charging/start` - Start charging session
 - `POST /api/charging/end` - End charging session
 - `GET /api/charging/sessions` - Get charging history
 - `GET /api/charging/stations` - Get nearby charging stations
+- `GET /api/charging/:sessionId` - Get specific charging session details
+
+#### Analytics & Reports
+- `GET /api/analytics/vehicle/:id` - Vehicle analytics
+- `GET /api/analytics/summary` - Usage summary
+- `GET /api/analytics/fleet` - Fleet-wide analytics
+- `GET /api/analytics/battery-trends` - Battery performance trends
+
+#### Alerts & Notifications
+- `GET /api/alerts` - Get user alerts
+- `PUT /api/alerts/:id/read` - Mark alert as read
+- `POST /api/alerts` - Create new alert
+- `DELETE /api/alerts/:id` - Delete alert
+
+#### Ownership & Transfers
+- `POST /api/ownership/transfer` - Transfer vehicle ownership
+- `GET /api/ownership/history/:vehicleId` - Get ownership history
+- `PUT /api/ownership/approve/:transferId` - Approve ownership transfer
 
 #### Blockchain Integration
 - `GET /api/blockchain/transactions` - Get blockchain transactions
 - `POST /api/blockchain/verify` - Verify blockchain data
 - `GET /api/blockchain/passport/:id` - Get battery passport from blockchain
+- `POST /api/blockchain/register-passport` - Register new battery passport
 
 ### API Response Format
 ```json
@@ -253,7 +329,7 @@ CORS_ORIGIN=http://localhost:5173
     // Response data
   },
   "meta": {
-    "timestamp": "2024-01-01T00:00:00.000Z",
+    "timestamp": "2025-09-29T00:00:00.000Z",
     "version": "1.0.0"
   }
 }
@@ -262,54 +338,75 @@ CORS_ORIGIN=http://localhost:5173
 ## 🔧 Development
 
 ### Project Structure
+
 ```
 smartev/
 ├── backend/
-│   ├── api/                    # REST API server
+│   ├── api/                          # REST API server (Node.js/TypeScript)
 │   │   ├── src/
-│   │   │   ├── controllers/    # Request handlers
-│   │   │   ├── models/         # MongoDB models
-│   │   │   ├── routes/         # API routes
-│   │   │   ├── services/       # Business logic
-│   │   │   ├── middlewares/    # Custom middleware
-│   │   │   └── utils/          # Utility functions
-│   │   └── tests/              # API tests
-│   └── blockchain/             # Smart contracts
-│       ├── contracts/          # Solidity contracts
-│       ├── scripts/            # Deployment scripts
-│       └── deployments/        # Contract addresses
+│   │   │   ├── controllers/          # Request handlers
+│   │   │   ├── models/               # MongoDB models
+│   │   │   ├── routes/               # API routes
+│   │   │   ├── services/             # Business logic
+│   │   │   ├── middlewares/          # Custom middleware
+│   │   │   ├── config/               # Configuration files
+│   │   │   ├── types/                # TypeScript type definitions
+│   │   │   ├── utils/                # Utility functions
+│   │   │   └── scripts/              # Utility scripts
+│   │   ├── tests/                    # API tests
+│   │   ├── postman/                  # Postman collections
+│   │   └── logs/                     # Application logs
+│   ├── blockchain/                   # Smart contracts (Hardhat)
+│   │   ├── contracts/                # Solidity contracts
+│   │   ├── scripts/                  # Deployment scripts
+│   │   ├── artifacts/                # Compiled contracts
+│   │   ├── deployments/              # Contract addresses
+│   │   └── cache/                    # Build cache
+│   └── deployments/                  # Deployment configurations
 ├── frontend/
-│   ├── web/                    # React web application
+│   ├── web/                          # React web application
 │   │   ├── src/
-│   │   │   ├── components/     # React components
-│   │   │   ├── pages/          # Page components
-│   │   │   ├── hooks/          # Custom React hooks
-│   │   │   ├── services/       # API integration
-│   │   │   └── utils/          # Frontend utilities
-│   │   └── public/             # Static assets
-│   └── app/                    # React Native mobile app
+│   │   │   ├── components/           # React components
+│   │   │   ├── pages/                # Page components
+│   │   │   ├── hooks/                # Custom React hooks
+│   │   │   ├── services/             # API integration
+│   │   │   ├── contexts/             # React contexts
+│   │   │   ├── lib/                  # Utility libraries
+│   │   │   └── assets/               # Static assets
+│   │   └── public/                   # Public assets
+│   └── app/                          # React Native mobile app
 │       ├── src/
-│       │   ├── components/     # Mobile components
-│       │   ├── screens/        # Screen components
-│       │   ├── navigation/     # Navigation setup
-│       │   └── services/       # Mobile API services
-│       └── assets/             # Mobile assets
-├── chat/                       # AI chat service
+│       │   ├── components/           # Mobile components
+│       │   ├── screens/              # Screen components
+│       │   ├── navigation/           # Navigation setup
+│       │   ├── api/                  # API services
+│       │   ├── contexts/             # React contexts
+│       │   ├── hooks/                # Custom hooks
+│       │   ├── config/               # Configuration
+│       │   ├── theme/                # UI themes
+│       │   ├── types/                # TypeScript types
+│       │   └── utils/                # Utility functions
+│       ├── assets/                   # Mobile assets
+│       └── .expo/                    # Expo configuration
+├── chat/                             # AI chat service
 │   ├── src/
-│   │   ├── routes/             # Chat routes
-│   │   └── services/           # AI integration
-│   └── uploads/                # File uploads
-├── model & ai/                 # ML/AI engine
+│   │   ├── routes/                   # Chat routes
+│   │   └── services/                 # AI integration
+│   └── uploads/                      # File uploads
+├── model & ai/                       # ML/AI engine
 │   ├── ml/
-│   │   ├── models/             # Trained ML models
-│   │   ├── notebooks/          # Jupyter notebooks
-│   │   └── data/               # Training data
-│   └── chatbot/                # AI chatbot models
-├── telementry/                 # IoT telemetry service
-│   └── src/                    # Telemetry processing
-└── docs/                       # Documentation
-    ├── api/                    # API documentation
-    └── integrations/           # Integration guides
+│   │   ├── models/                   # Trained ML models
+│   │   ├── notebooks/                # Jupyter notebooks
+│   │   ├── data/                     # Training data
+│   │   └── mobility/                 # Python virtual environment
+│   └── chatbot/                      # AI chatbot models
+├── telementry/                       # IoT telemetry service
+│   └── src/                          # Telemetry processing
+└── docs/                             # Documentation
+    ├── api/                          # API documentation
+    ├── integrations/                 # Integration guides
+    ├── DEPLOYMENT.md                 # Deployment guide
+    └── README.md                     # Documentation overview
 ```
 
 ### Running Tests
@@ -401,21 +498,6 @@ The project includes GitHub Actions workflows for:
 - **Network Utilization**: Charging station usage statistics
 - **User Engagement**: Application usage metrics
 
-## 🤝 Contributing
-
-We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on:
-- Code style and standards
-- Pull request process
-- Issue reporting guidelines
-- Development workflow
-
-### Development Workflow
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -435,38 +517,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Commercial Support
 For enterprise support, custom integrations, or commercial licensing, please contact us at support@smartev.com.
 
-## 🗺️ Roadmap
 
-### Phase 1: Core Platform (Current)
-- ✅ Backend API with authentication and core features
-- ✅ Web dashboard with admin capabilities
-- ✅ Mobile application for end users
-- ✅ Basic ML analytics and battery tracking
-- ✅ Blockchain integration for battery passports
-
-### Phase 2: Advanced Features (Q1 2024)
-- 🔄 Advanced AI analytics and predictive modeling
-- 🔄 Enhanced mobile app with offline capabilities
-- 🔄 Integration with more charging networks
-- 🔄 Advanced admin dashboard with analytics
-- 🔄 Multi-language support and localization
-
-### Phase 3: Enterprise Features (Q2 2024)
-- 📋 Fleet management capabilities
-- 📋 Advanced reporting and analytics
-- 📋 Enterprise SSO integration
-- 📋 API marketplace and third-party integrations
-- 📋 Advanced blockchain features and tokenization
-
-### Phase 4: Global Expansion (Q3 2024)
-- 📋 International market support
-- 📋 Currency and payment gateway integration
-- 📋 Compliance with global EV standards
-- 📋 Advanced IoT device integration
-- 📋 Carbon credit tracking and trading
-
----
-
-**Built with ❤️ by the SmartEV Team**
 
 *Empowering the future of electric mobility through technology innovation.*
